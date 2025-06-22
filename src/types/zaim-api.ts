@@ -12,6 +12,8 @@ export interface ZaimApiResponse<T = unknown> {
   status?: number;
   /** タイムスタンプ */
   timestamp?: string;
+  /** ユーザー情報（認証API用） */
+  me?: ZaimUser;
 }
 
 /**
@@ -20,16 +22,18 @@ export interface ZaimApiResponse<T = unknown> {
 export interface ZaimUser {
   /** ユーザーID */
   id: number;
+  /** ログイン名 */
+  login?: string;
   /** ユーザー名 */
   name: string;
   /** プロフィール画像URL */
   profile_image_url?: string;
   /** 入力ガイドの表示設定 */
-  input_count: number;
+  input_count?: number;
   /** 家計簿の継続日数 */
-  repeat_count: number;
+  repeat_count?: number;
   /** 登録日 */
-  day: string;
+  day?: string;
 }
 
 /**
