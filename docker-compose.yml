@@ -1,0 +1,12 @@
+version: '3.8'
+
+services:
+  mcp-base:
+    build: .
+    container_name: mcp-base
+    environment:
+      - LOG_LEVEL=info
+    # Add your environment variables here
+    # - API_KEY=your_api_key_here
+    stdin_open: true
+    tty: true
