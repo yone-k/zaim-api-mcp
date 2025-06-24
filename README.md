@@ -1,51 +1,76 @@
-# MCP Base Server
+# Zaim API MCP Server
 
 [English README](README.en.md)
 
-MCP (Model Context Protocol) サーバー作成用のベーステンプレートです。
+Zaim APIとの連携を可能にするMCP (Model Context Protocol) サーバーです。OAuth 1.0a認証を使用してZaimの家計簿データの取得・操作を行います。
 
 ## 特徴
 
-- TypeScriptベースのMCPサーバー実装
-- モジュラーなツールアーキテクチャ
-- Zodスキーマによる組み込みバリデーション
-- サンプルツール実装
-- Vitestテスト環境
-- 包括的なエラーハンドリング
-- 高速なMCPサーバー開発テンプレート
+- Zaim API（OAuth 1.0a）との完全な統合
+- 14個の包括的なツールセット
+- 家計簿データの取得・作成・更新・削除
+- マスターデータ（カテゴリ、ジャンル、口座、通貨）の取得
+- TypeScriptベースの型安全な実装
+- Zodスキーマによる厳密なバリデーション
+- 包括的なテストカバレッジ（128テスト）
+- Dockerサポート
+
+## 実装済みツール
+
+### 認証・ユーザー情報
+- `zaim_check_auth_status` - 認証状態の確認
+- `zaim_get_user_info` - ユーザー情報の取得
+
+### 家計簿データ操作
+- `zaim_get_money_records` - 家計簿記録の取得（フィルタリング・ページネーション対応）
+- `zaim_create_payment` - 支出記録の作成
+- `zaim_create_income` - 収入記録の作成  
+- `zaim_create_transfer` - 振替記録の作成
+- `zaim_update_money_record` - 既存記録の更新
+- `zaim_delete_money_record` - 記録の削除
+
+### マスターデータ取得
+- `zaim_get_user_categories` - ユーザーカテゴリ一覧
+- `zaim_get_user_genres` - ユーザージャンル一覧
+- `zaim_get_user_accounts` - ユーザー口座一覧
+- `zaim_get_default_categories` - デフォルトカテゴリ一覧
+- `zaim_get_default_genres` - デフォルトジャンル一覧
+- `zaim_get_currencies` - 利用可能通貨一覧
 
 ## 要件
 
-- Docker
-- Docker Compose（オプション）
+- Docker（推奨）
+- Node.js 22+（ローカル開発時）
+- Zaim APIのOAuth認証情報
+  - Consumer Key
+  - Consumer Secret
+  - Access Token
+  - Access Token Secret
+
+## 環境変数設定
+
+```bash
+# 必須：Zaim API認証情報
+ZAIM_CONSUMER_KEY=your_consumer_key
+ZAIM_CONSUMER_SECRET=your_consumer_secret
+ZAIM_ACCESS_TOKEN=your_access_token
+ZAIM_ACCESS_TOKEN_SECRET=your_access_token_secret
+```
 
 ## インストール
 
+### Dockerを使用（推奨）
+
 ```bash
 # リポジトリをクローン
-git clone <repository-url>
-cd mcp-base
+git clone https://github.com/yone-k/zaim-api-mcp.git
+cd zaim-api-mcp
 
 # Dockerイメージをビルド
-docker build -t mcp-base .
+docker build -t zaim-api-mcp .
 ```
 
-## 使用方法
-
-### Docker（推奨）
-
-```bash
-# 基本実行
-docker run --rm -i mcp-base
-
-# 環境変数を指定して実行
-docker run --rm -i -e API_KEY=your_api_key_here mcp-base
-
-# Docker Composeを使用
-docker-compose up --build
-```
-
-### 開発環境（ローカル開発用）
+### ローカル開発
 
 ```bash
 # 依存関係をインストール
@@ -61,234 +86,168 @@ npm test
 npm run build
 ```
 
-## MCPクライアント設定
+## Claude Desktop設定
 
-### Claude Desktop
+### 1. 設定ファイルの場所
 
-1. Claude Desktopの設定ファイルを編集します：
-
-**macOS**: `~/Library/Application Support/Claude/claude_desktop_config.json`
+**macOS**: `~/Library/Application Support/Claude/claude_desktop_config.json`  
 **Windows**: `%APPDATA%\Claude\claude_desktop_config.json`
 
-2. 以下の設定を追加します：
-
-#### Dockerを使用する場合（推奨）
+### 2. Docker設定（推奨）
 
 ```json
 {
   "mcpServers": {
-    "mcp-base": {
+    "zaim-api": {
       "command": "docker",
       "args": [
         "run", 
         "--rm", 
         "-i",
-        "mcp-base"
+        "-e", "ZAIM_CONSUMER_KEY=your_consumer_key",
+        "-e", "ZAIM_CONSUMER_SECRET=your_consumer_secret",
+        "-e", "ZAIM_ACCESS_TOKEN=your_access_token",
+        "-e", "ZAIM_ACCESS_TOKEN_SECRET=your_access_token_secret",
+        "zaim-api-mcp"
       ]
     }
   }
 }
 ```
 
-#### ローカルビルドを使用する場合
+### 3. ローカルビルド設定
 
 ```json
 {
   "mcpServers": {
-    "mcp-base": {
+    "zaim-api": {
       "command": "node",
-      "args": ["/path/to/mcp-base/dist/index.js"]
-    }
-  }
-}
-```
-
-#### 開発環境での設定
-
-```json
-{
-  "mcpServers": {
-    "mcp-base-dev": {
-      "command": "npx",
-      "args": ["ts-node", "/path/to/mcp-base/src/index.ts"],
-      "cwd": "/path/to/mcp-base"
-    }
-  }
-}
-```
-
-### その他のMCPクライアント
-
-stdio転送をサポートする任意のMCPクライアントから利用できます：
-
-```bash
-# Dockerで直接実行
-docker run --rm -i mcp-base
-```
-
-## アーキテクチャ
-
-プロジェクトはモジュラーアーキテクチャに従います：
-
-- `src/index.ts` - メインサーバーエントリーポイント
-- `src/core/tool-handler.ts` - コアツール実行ロジック
-- `src/tools/` - カテゴリ別に整理されたツール実装
-- `src/tools/registry.ts` - ツール登録と発見
-- `src/types/` - TypeScript型定義
-
-## 新しいツールの追加
-
-1. `src/tools/[category]/[tool-name].ts`に新しいツールファイルを作成
-2. ツールスキーマ、入出力型、実装を定義
-3. 登録用に`toolDefinition`をエクスポート
-4. `src/tools/registry.ts`にツールを追加
-5. `src/core/tool-handler.ts`のツールハンドラーを更新
-
-## ツール実装テンプレート
-
-```typescript
-import { z } from 'zod';
-import { ToolDefinition } from '../../types/mcp.js';
-
-// 入力スキーマ定義
-export const MyToolInputSchema = z.object({
-  parameter: z.string().describe('パラメータの説明'),
-  optionalParam: z.boolean().optional().default(false)
-}).strict();
-
-export type MyToolInput = z.infer<typeof MyToolInputSchema>;
-
-// MCPツール定義
-export const toolDefinition: ToolDefinition = {
-  name: 'my_tool',
-  description: 'ツールの機能説明',
-  inputSchema: {
-    type: 'object' as const,
-    properties: {
-      parameter: {
-        type: 'string',
-        description: 'パラメータの説明'
-      },
-      optionalParam: {
-        type: 'boolean',
-        description: 'オプションパラメータの説明',
-        default: false
+      "args": ["/path/to/zaim-api-mcp/dist/index.js"],
+      "env": {
+        "ZAIM_CONSUMER_KEY": "your_consumer_key",
+        "ZAIM_CONSUMER_SECRET": "your_consumer_secret",
+        "ZAIM_ACCESS_TOKEN": "your_access_token",
+        "ZAIM_ACCESS_TOKEN_SECRET": "your_access_token_secret"
       }
-    },
-    required: ['parameter'],
-    additionalProperties: false
-  }
-};
-
-// 出力スキーマ定義
-export const MyToolOutputSchema = z.object({
-  result: z.string(),
-  timestamp: z.string().optional()
-});
-
-export type MyToolOutput = z.infer<typeof MyToolOutputSchema>;
-
-// ツール実装
-export async function myTool(input: MyToolInput): Promise<MyToolOutput> {
-  return {
-    result: `処理結果: ${input.parameter}`,
-    timestamp: new Date().toISOString()
-  };
-}
-```
-
-## カスタマイズガイド
-
-### 1. プロジェクト名の変更
-
-`package.json`と`src/index.ts`をプロジェクト名で更新：
-
-```typescript
-// src/index.ts
-this.server = new Server({
-  name: 'your-mcp-server',
-  version: '1.0.0',
-});
-```
-
-### 2. カスタムクライアントの追加
-
-`src/core/tool-handler.ts`にカスタムクライアントを追加：
-
-```typescript
-export class ToolHandler {
-  private customClient: CustomClient | null = null;
-
-  private async ensureCustomClient(): Promise<CustomClient> {
-    if (!this.customClient) {
-      const apiKey = process.env.API_KEY;
-      if (!apiKey) {
-        throw new McpError(
-          ErrorCode.InvalidRequest,
-          'API_KEY環境変数が設定されていません'
-        );
-      }
-      this.customClient = new CustomClient(apiKey);
     }
-    return this.customClient;
   }
 }
 ```
 
-### 3. 環境変数
+## 使用例
 
-必要に応じて環境変数の処理を追加：
-
-```bash
-# 環境変数の例
-export API_KEY="your_api_key_here"
-export LOG_LEVEL="info"
+### 認証状態の確認
+```
+zaim_check_auth_status を使って認証が正しく設定されているか確認してください
 ```
 
-## 利用可能なスクリプト
+### 家計簿データの取得
+```
+zaim_get_money_records を使って、2024年1月の支出記録を取得してください
+```
 
-- `npm run build` - TypeScriptをJavaScriptにコンパイル
-- `npm run start` - 本番サーバーを開始
-- `npm run dev` - ts-nodeで開発サーバーを開始
-- `npm run lint` - ESLintを実行
-- `npm run typecheck` - TypeScript型チェックを実行
-- `npm test` - テストを実行
-- `npm run test:watch` - 監視モードでテストを実行
-- `npm run test:coverage` - カバレッジレポート付きでテストを実行
-- `npm run docker:build` - Dockerイメージをビルド
-- `npm run docker:run` - Dockerコンテナを実行
-- `npm run docker:dev` - Docker Composeで開発環境を起動
+### 支出の記録
+```
+zaim_create_payment を使って、本日1,500円の昼食代を食費カテゴリで記録してください
+```
+
+### カテゴリ一覧の取得
+```
+zaim_get_user_categories を使って利用可能なカテゴリ一覧を表示してください
+```
+
+## API設定
+
+`config/zaim-config.json`で詳細な設定が可能です：
+
+- APIタイムアウト設定
+- レート制限設定
+- キャッシュ設定
+- ログレベル設定
 
 ## プロジェクト構造
 
 ```
-mcp-base/
+zaim-api-mcp/
 ├── src/
-│   ├── core/
-│   │   └── tool-handler.ts    # コアツール実行ロジック
-│   ├── tools/
-│   │   ├── registry.ts        # ツール登録
-│   │   └── example/
-│   │       └── example-tool.ts # サンプルツール実装
-│   ├── types/
-│   │   └── mcp.ts            # 型定義
-│   └── index.ts              # メインサーバーエントリーポイント
-├── dist/                     # コンパイル済みJavaScript出力
-├── package.json              # プロジェクト依存関係とスクリプト
-├── tsconfig.json             # TypeScript設定
-├── vitest.config.ts          # テスト設定
-├── CLAUDE.md                 # 開発ドキュメント
-└── README.md                 # このファイル
+│   ├── core/              # MCPサーバーコア機能
+│   │   ├── tool-handler.ts
+│   │   └── zaim-api-client.ts
+│   ├── tools/             # ツール実装
+│   │   ├── auth/          # 認証関連ツール
+│   │   ├── money/         # 家計簿データツール
+│   │   ├── master/        # マスターデータツール
+│   │   └── registry.ts    # ツール登録
+│   ├── types/             # 型定義
+│   ├── utils/             # ユーティリティ
+│   └── index.ts           # エントリーポイント
+├── tests/                 # テストファイル
+├── config/                # 設定ファイル
+└── docker-compose.yml     # Docker設定
 ```
+
+## 開発ガイド
+
+### Git ワークフロー
+
+1. 機能ごとにブランチを作成
+2. TDD（テスト駆動開発）で実装
+3. すべてのテストが通ることを確認
+4. プルリクエストを作成
+
+### コミットメッセージ規約
+
+```
+feat: 新機能の追加
+fix: バグ修正
+docs: ドキュメントの変更
+refactor: リファクタリング
+test: テストの追加・修正
+chore: ビルドプロセスやツールの変更
+```
+
+### 利用可能なスクリプト
+
+```bash
+npm run build          # TypeScriptビルド
+npm run start          # 本番サーバー起動
+npm run dev            # 開発サーバー起動
+npm run lint           # ESLint実行
+npm run typecheck      # 型チェック
+npm test               # テスト実行
+npm run test:watch     # テスト監視モード
+npm run test:coverage  # カバレッジレポート
+npm run docker:build   # Dockerイメージビルド
+npm run docker:run     # Dockerコンテナ実行
+npm run docker:dev     # Docker Compose起動
+```
+
+## トラブルシューティング
+
+### 認証エラー
+- 環境変数が正しく設定されているか確認
+- Zaim開発者サイトでアプリケーションの設定を確認
+- アクセストークンの有効期限を確認
+
+### Docker関連
+- Dockerデーモンが起動しているか確認
+- 環境変数が正しく渡されているか確認
+- ログで詳細なエラーメッセージを確認
 
 ## 貢献
 
 1. リポジトリをフォーク
-2. フィーチャーブランチを作成
-3. テスト付きで変更を追加
-4. lintと型チェックを実行
-5. プルリクエストを提出
+2. フィーチャーブランチを作成 (`git checkout -b feat/amazing-feature`)
+3. 変更をコミット (`git commit -m 'feat: 素晴らしい機能を追加'`)
+4. ブランチをプッシュ (`git push origin feat/amazing-feature`)
+5. プルリクエストを作成
 
 ## ライセンス
 
 MITライセンス - 詳細は[LICENSE](LICENSE)ファイルを参照してください。
+
+## 関連リンク
+
+- [Zaim API ドキュメント](https://dev.zaim.net/)
+- [MCP仕様](https://modelcontextprotocol.io/)
+- [Claude Desktop](https://claude.ai/desktop)
