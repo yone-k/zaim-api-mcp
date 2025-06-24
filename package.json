@@ -1,7 +1,7 @@
 {
-  "name": "mcp-base",
+  "name": "zaim-api-mcp",
   "version": "1.0.0",
-  "description": "Base MCP Server Template",
+  "description": "MCP Server for Zaim API integration with OAuth 1.0a authentication",
   "main": "dist/index.js",
   "type": "module",
   "scripts": {
@@ -14,17 +14,30 @@
     "test:ui": "vitest --ui",
     "test:watch": "vitest --watch",
     "test:coverage": "vitest --coverage",
-    "docker:build": "docker build -t mcp-base .",
-    "docker:run": "docker run --rm -i mcp-base",
+    "docker:build": "docker build -t zaim-api-mcp .",
+    "docker:run": "docker run --rm -i zaim-api-mcp",
     "docker:dev": "docker-compose up --build"
   },
   "keywords": [
     "mcp",
     "server",
-    "template"
+    "zaim",
+    "api",
+    "oauth",
+    "personal-finance",
+    "household-budget",
+    "japan"
   ],
-  "author": "",
+  "author": "Yone Katagiri",
   "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/yone-k/zaim-api-mcp.git"
+  },
+  "homepage": "https://github.com/yone-k/zaim-api-mcp#readme",
+  "bugs": {
+    "url": "https://github.com/yone-k/zaim-api-mcp/issues"
+  },
   "dependencies": {
     "@modelcontextprotocol/sdk": "^0.4.0",
     "zod": "^3.22.4"
