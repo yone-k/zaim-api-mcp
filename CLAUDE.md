@@ -1,8 +1,12 @@
-# MCP Base Server
+# CLAUDE.md
+
+This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
+
+# Zaim API MCP Server
 
 ## プロジェクト概要
 
-汎用的なMCP (Model Context Protocol) サーバーのベーステンプレートです。新しいMCPサーバーを簡単に作成できるように設計されています。
+Zaim API との連携を提供するMCP (Model Context Protocol) サーバーです。OAuth 1.0a認証を使用してZaimの家計簿APIにアクセスし、Claudeが日本の家計簿管理サービスを操作できるようにします。
 
 ### 技術スタック
 
@@ -11,87 +15,184 @@
 - **バリデーション**: Zod
 - **実行環境**: Node.js 22+
 - **テストフレームワーク**: Vitest
+- **認証**: OAuth 1.0a
+
+## 開発コマンド
+
+```bash
+# ビルド・実行
+npm run build          # TypeScriptコンパイル
+npm run start          # 本番環境実行
+npm run dev            # 開発サーバー実行
+
+# テスト
+npm test               # 全テスト実行
+npm run test:watch     # 監視モードでテスト実行
+npm run test:coverage  # カバレッジ付きテスト実行
+npm run test:ui        # インタラクティブなテストUI
+
+# コード品質
+npm run lint           # ESLint実行
+npm run typecheck      # TypeScript型チェック
+
+# Docker
+npm run docker:build  # Dockerイメージビルド
+npm run docker:run    # Dockerコンテナ実行
+npm run docker:dev    # Docker Compose開発環境
+```
 
 ## アーキテクチャ
 
 ### 設計方針
 
-**MCPプロトコル準拠**: Model Context Protocolの仕様に完全準拠し、標準的なMCPクライアントとの互換性を保つ
-**モジュラー設計**: ツール実装を独立したモジュールとして管理し、拡張性を重視
-**型安全性**: TypeScriptとZodを活用した厳密な型チェック
-**テンプレート性**: 新しいMCPサーバー開発の出発点として使用可能
+**MCPプロトコル準拠**: Model Context Protocolの仕様に完全準拠
+**OAuth 1.0a統合**: Zaim APIとの安全な認証・通信
+**モジュラー設計**: 機能別ツール実装とレジストリパターン
+**型安全性**: TypeScriptとZodによる厳密な型安全性
+**包括的テスト**: 128テストケースによる高品質保証
 
 ### ディレクトリ構造
 
 ```
-mcp-base/
+zaim-api-mcp/
 ├── src/
-│   ├── core/              # MCPサーバーのコア機能
-│   │   └── tool-handler.ts    # 共通ツールハンドラー
-│   ├── tools/             # MCPツール実装（カテゴリ別整理）
-│   │   ├── registry.ts         # ツールレジストリ
-│   │   └── example/            # サンプルツール実装
-│   ├── types/             # 型定義
-│   └── index.ts           # エントリーポイント
-├── package.json           # 依存関係とスクリプト
-├── tsconfig.json          # TypeScript設定
-├── vitest.config.ts       # テスト設定
-├── README.md              # 使用方法
-└── CLAUDE.md              # このファイル
+│   ├── core/                     # コア機能
+│   │   ├── tool-handler.ts       # ツール実行ハンドラー
+│   │   └── zaim-api-client.ts    # OAuth 1.0a APIクライアント
+│   ├── tools/                    # 機能別ツール実装
+│   │   ├── auth/                 # 認証・ユーザー情報（2ツール）
+│   │   ├── money/                # 家計簿CRUD操作（5ツール）
+│   │   ├── master/               # マスターデータ取得（6ツール）
+│   │   └── registry.ts           # ツールレジストリ
+│   ├── types/                    # 型定義
+│   │   ├── mcp.ts               # MCPプロトコル型
+│   │   ├── oauth.ts             # OAuth型定義
+│   │   └── zaim-api.ts          # Zaim APIレスポンス型
+│   ├── utils/                    # ユーティリティ
+│   │   ├── oauth-signature.ts    # OAuth署名生成
+│   │   └── token-storage.ts      # トークン永続化
+│   └── index.ts                  # サーバーエントリーポイント
+├── tests/                        # テストスイート（128テスト）
+├── config/                       # 設定ファイル
+└── docker-compose.yml           # 開発環境
 ```
 
-### ツール管理アーキテクチャ
+### 実装済みツール（14個）
 
-**ツールレジストリパターン**: 各ツールファイルにMCP定義を含め、`registry.ts`で一元管理
-**動的ツール登録**: `index.ts`はレジストリから動的にツール一覧を取得
-**共通ハンドラー**: `ToolHandler`クラスがバリデーションとエラーハンドリングを統一
+**認証ツール（2個）**
+- `zaim_check_auth_status`: OAuth認証状態確認
+- `zaim_get_user_info`: ユーザー情報取得
+
+**家計簿データツール（5個）**
+- `zaim_get_money_records`: データ検索・取得（フィルタ・ページネーション対応）
+- `zaim_create_payment`: 支出データ作成
+- `zaim_create_income`: 収入データ作成
+- `zaim_create_transfer`: 振替データ作成
+- `zaim_update_money_record`: データ更新
+- `zaim_delete_money_record`: データ削除
+
+**マスターデータツール（6個）**
+- `zaim_get_user_categories`: ユーザー定義カテゴリ
+- `zaim_get_user_genres`: ユーザー定義ジャンル
+- `zaim_get_user_accounts`: ユーザー口座一覧
+- `zaim_get_default_categories`: システムカテゴリ
+- `zaim_get_default_genres`: システムジャンル
+- `zaim_get_currencies`: 通貨一覧
+
+### アーキテクチャパターン
+
+**ツールレジストリパターン**: `registry.ts`での一元管理
+**ハンドラーパターン**: `ToolHandler`クラスによる統一処理
+**OAuth認証パターン**: `ZaimApiClient`でのRFC準拠実装
+
+## テスト実行
+
+### テストコマンド
+
+```bash
+# 全テスト実行
+npm test
+
+# 監視モードでテスト実行（開発時推奨）
+npm run test:watch
+
+# カバレッジ付きテスト実行
+npm run test:coverage
+
+# インタラクティブなテストUI
+npm run test:ui
+
+# 特定のテストファイル実行
+npm test -- tests/auth/user-tools.test.ts
+
+# 特定のテストパターンで実行
+npm test -- --grep "認証"
+```
+
+### テスト構造
+
+- **テスト総数**: 128テストケース
+- **カバレッジ**: 95%以上を維持
+- **モック**: vi.mock()による外部依存関係のモック
+- **統合テスト**: エンドツーエンドのツール実行テスト
+
+## 環境設定
+
+### 必須環境変数
+
+```bash
+ZAIM_CONSUMER_KEY=your_consumer_key
+ZAIM_CONSUMER_SECRET=your_consumer_secret  
+ZAIM_ACCESS_TOKEN=your_access_token
+ZAIM_ACCESS_TOKEN_SECRET=your_access_token_secret
+```
+
+### 設定ファイル
+
+- `config/zaim-config.json`: API設定、レート制限、キャッシュ設定
+- `.eslintrc.json`: コード品質設定
+- `tsconfig.json`: TypeScript設定
+- `vitest.config.ts`: テスト設定
 
 ## 開発ガイドライン
 
 ### コーディング規約
 
-- **ファイル命名**: kebab-case (例: example-tool.ts)
-- **クラス命名**: PascalCase (例: BaseMCPServer)
-- **関数・変数命名**: camelCase (例: setupHandlers)
+- **ファイル命名**: kebab-case (例: money-read-tools.ts)
+- **クラス命名**: PascalCase (例: ZaimMCPServer)
+- **関数・変数命名**: camelCase (例: getUserInfo)
 - **定数命名**: UPPER_SNAKE_CASE (例: DEFAULT_TIMEOUT)
-- **型命名**: PascalCase with suffix (例: ExampleToolInput)
+- **型命名**: PascalCase with suffix (例: CreatePaymentInput)
 
 ### 新規ツール追加フロー
 
-1. **カテゴリの決定**: 追加するツールが属するカテゴリを決定
-2. **ツールファイルの作成**: `src/tools/{category}/{tool-name}.ts`
-3. **ツール定義の実装**: 以下の要素を含める
+1. **ツールファイルの作成**: `src/tools/{category}/{tool-name}.ts`
+2. **ツール定義の実装**: 以下の要素を含める
    - 入力スキーマ（Zod）
    - 出力スキーマ（Zod）
    - ツール定義（MCP形式）
    - 実装関数
-4. **レジストリへの登録**: `src/tools/registry.ts`に追加
-5. **ハンドラーの更新**: `src/core/tool-handler.ts`のswitchケースに追加
-6. **テストの作成**: `src/tools/{category}/{tool-name}.test.ts`
+3. **レジストリへの登録**: `src/tools/registry.ts`に追加
+4. **ハンドラーの更新**: `src/core/tool-handler.ts`のswitchケースに追加
+5. **テストの作成**: `tests/{category}/{tool-name}.test.ts`
+6. **型定義の更新**: 必要に応じて`src/types/`の型定義を更新
 
-### 開発コマンド
+### 重要な実装パターン
 
-```bash
-# Docker環境での開発
-npm run docker:build    # Dockerイメージをビルド
-npm run docker:run      # Dockerコンテナを実行
-npm run docker:dev      # Docker Composeで開発環境を起動
+**OAuth認証の実装**
+- `ZaimApiClient.ensureAuthenticated()`で認証確認
+- OAuth 1.0a署名は`oauth-signature.ts`で自動生成
+- トークンの永続化は`token-storage.ts`で管理
 
-# ローカル開発
-npm run dev
+**エラーハンドリング**
+- MCPエラー（`McpError`）でクライアントに適切な情報を返す
+- Zaim APIエラーは`ZaimApiClient`で標準化
+- バリデーションエラーはZodで自動生成
 
-# テスト実行
-npm test
-npm run test:watch      # 監視モード
-npm run test:coverage   # カバレッジ付き
-
-# ビルド
-npm run build
-
-# lint/typecheck
-npm run lint
-npm run typecheck
-```
+**レスポンス形式**
+- 全ツールで統一されたJSON形式を使用
+- `content`配列内に`TextContent`型でデータを格納
+- エラー時は`isError`フラグとエラーメッセージを含める
 
 ## ツール実装テンプレート
 
@@ -107,7 +208,7 @@ export const MyToolInputSchema = z.object({
 export type MyToolInput = z.infer<typeof MyToolInputSchema>;
 
 export const toolDefinition: ToolDefinition = {
-  name: 'my_tool',
+  name: 'zaim_my_tool',  // 必ずzaim_プレフィックスを付ける
   description: 'ツールの機能説明',
   inputSchema: {
     type: 'object' as const,
@@ -129,62 +230,59 @@ export const toolDefinition: ToolDefinition = {
 
 export const MyToolOutputSchema = z.object({
   result: z.string(),
-  timestamp: z.string().optional()
+  success: z.boolean(),
+  timestamp: z.string()
 });
 
 export type MyToolOutput = z.infer<typeof MyToolOutputSchema>;
 
 export async function myTool(input: MyToolInput): Promise<MyToolOutput> {
-  // ツールの実装
+  // Zaim APIクライアントの使用例
+  // const client = await ZaimApiClient.getInstance();
+  // const response = await client.someApiCall(input.parameter);
+  
   return {
     result: `処理結果: ${input.parameter}`,
+    success: true,
     timestamp: new Date().toISOString()
   };
 }
 ```
 
-## カスタマイズガイド
+## 主要なファイル
 
-### 1. プロジェクト名の変更
+### コアファイル
+- `src/core/zaim-api-client.ts`: OAuth 1.0a認証とAPI通信の中核
+- `src/core/tool-handler.ts`: ツール実行とエラーハンドリングの統一
+- `src/tools/registry.ts`: 全ツールの登録とエクスポート
+- `src/index.ts`: MCPサーバーのエントリーポイント
 
-```bash
-# package.jsonの名前を変更
-# src/index.tsのサーバー名を変更
-```
+### 認証関連
+- `src/utils/oauth-signature.ts`: RFC 5849準拠のOAuth署名生成
+- `src/utils/token-storage.ts`: トークンの永続化とライフサイクル管理
+- `src/types/oauth.ts`: OAuth関連の型定義
 
-### 2. 独自クライアントの追加
+### API関連
+- `src/types/zaim-api.ts`: Zaim APIレスポンスの型定義
+- `config/zaim-config.json`: API設定（タイムアウト、レート制限等）
 
-`src/core/`に独自のクライアントクラスを追加し、`ToolHandler`で初期化：
+### 開発時の重要なポイント
 
-```typescript
-export class ToolHandler {
-  private customClient: CustomClient | null = null;
+**OAuth 1.0a認証フロー**
+1. Consumer Key/Secretでリクエストトークン取得
+2. ユーザーがブラウザで認証
+3. アクセストークン交換
+4. 永続化されたトークンでAPI呼び出し
 
-  private async ensureCustomClient(): Promise<CustomClient> {
-    if (!this.customClient) {
-      this.customClient = new CustomClient();
-    }
-    return this.customClient;
-  }
-}
-```
+**レート制限の考慮**
+- Zaim APIは60リクエスト/分の制限
+- `ZaimApiClient`で自動的にレート制限を管理
+- 必要に応じてリトライ機構を実装
 
-### 3. 環境変数の管理
-
-必要な環境変数を`ToolHandler`で管理：
-
-```typescript
-private async ensureClient(): Promise<Client> {
-  const apiKey = process.env.API_KEY;
-  if (!apiKey) {
-    throw new McpError(
-      ErrorCode.InvalidRequest,
-      'API_KEY環境変数が設定されていません'
-    );
-  }
-  return new Client(apiKey);
-}
-```
+**エラーハンドリングのベストプラクティス**
+- 認証エラー（401）: トークン再取得が必要
+- レート制限エラー（429）: 自動リトライ
+- その他のAPIエラー: 適切なMCPエラーに変換
 
 ## コミットガイドライン
 
