@@ -1,43 +1,53 @@
+import { z } from 'zod';
+
 /**
  * OAuth 1.0a認証に必要な設定情報
  */
-export interface OAuthConfig {
+export const OAuthConfigSchema = z.object({
   /** コンシューマーキー */
-  consumerKey: string;
+  consumerKey: z.string(),
   /** コンシューマーシークレット */
-  consumerSecret: string;
+  consumerSecret: z.string(),
   /** アクセストークン */
-  accessToken: string;
+  accessToken: z.string(),
   /** アクセストークンシークレット */
-  accessTokenSecret: string;
-}
+  accessTokenSecret: z.string(),
+}).strict();
+
+export type OAuthConfig = z.infer<typeof OAuthConfigSchema>;
 
 /**
  * OAuth認証パラメータ
  */
-export interface OAuthParameters {
+export const OAuthParametersSchema = z.object({
   /** コンシューマーキー */
-  oauth_consumer_key: string;
+  oauth_consumer_key: z.string(),
   /** ワンタイムトークン */
-  oauth_nonce: string;
+  oauth_nonce: z.string(),
   /** 署名方式 */
-  oauth_signature_method: string;
+  oauth_signature_method: z.string(),
   /** タイムスタンプ */
-  oauth_timestamp: string;
+  oauth_timestamp: z.string(),
   /** アクセストークン */
-  oauth_token: string;
+  oauth_token: z.string(),
   /** バージョン */
-  oauth_version: string;
+  oauth_version: z.string(),
   /** 署名 */
-  oauth_signature?: string;
-}
+  oauth_signature: z.string().optional(),
+}).strict();
+
+export type OAuthParameters = z.infer<typeof OAuthParametersSchema>;
 
 /**
  * HTTPメソッド
  */
-export type HttpMethod = 'GET' | 'POST' | 'PUT' | 'DELETE';
+export const HttpMethodSchema = z.enum(['GET', 'POST', 'PUT', 'DELETE']);
+
+export type HttpMethod = z.infer<typeof HttpMethodSchema>;
 
 /**
  * リクエストパラメータ
  */
-export type RequestParameters = Record<string, string | number | boolean>;
+export const RequestParametersSchema = z.record(z.string(), z.union([z.string(), z.number(), z.boolean()]));
+
+export type RequestParameters = z.infer<typeof RequestParametersSchema>;
