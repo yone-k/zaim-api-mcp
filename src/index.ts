@@ -11,13 +11,13 @@ import {
 import { registeredTools } from './tools/registry.js';
 import { ToolHandler } from './core/tool-handler.js';
 
-class BaseMCPServer {
+class ZaimMCPServer {
   private server: Server;
   private toolHandler: ToolHandler;
 
   constructor() {
     this.server = new Server({
-      name: 'mcp-base',
+      name: 'zaim-api-mcp',
       version: '1.0.0',
     });
 
@@ -65,12 +65,12 @@ class BaseMCPServer {
   async run(): Promise<void> {
     const transport = new StdioServerTransport();
     await this.server.connect(transport);
-    console.error('Base MCP Server started');
+    console.error('Zaim API MCP Server started');
   }
 }
 
 async function main(): Promise<void> {
-  const server = new BaseMCPServer();
+  const server = new ZaimMCPServer();
   await server.run();
 }
 
