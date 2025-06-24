@@ -11,8 +11,8 @@ describe('Integration Tests', () => {
   });
 
   describe('Tool Registry', () => {
-    it('should have all 12 tools registered', () => {
-      expect(registeredTools).toHaveLength(12);
+    it('should have all 14 tools registered', () => {
+      expect(registeredTools).toHaveLength(14);
     });
 
     it('should include all expected tools', () => {
@@ -50,8 +50,8 @@ describe('Integration Tests', () => {
 
     it('should provide correct registry stats', () => {
       const stats = getRegistryStats();
-      expect(stats.totalTools).toBe(12);
-      expect(stats.toolNames).toHaveLength(12);
+      expect(stats.totalTools).toBe(14);
+      expect(stats.toolNames).toHaveLength(14);
     });
   });
 
