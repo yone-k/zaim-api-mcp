@@ -1,6 +1,7 @@
 import { z } from 'zod';
 import { TokenStorage } from '../../utils/token-storage.js';
 import type { ToolDefinition } from '../../types/mcp.js';
+import type { ZaimMoney } from '../../types/zaim-api.js';
 
 /**
  * 記録更新ツールの入力スキーマ
@@ -25,23 +26,7 @@ export type UpdateMoneyRecordInput = z.infer<typeof UpdateMoneyRecordInputSchema
  * 記録更新結果の出力スキーマ
  */
 export const UpdateMoneyRecordOutputSchema = z.object({
-  record: z.object({
-    id: z.number(),
-    mode: z.enum(['payment', 'income', 'transfer']),
-    date: z.string(),
-    amount: z.number(),
-    currency_code: z.string(),
-    category_id: z.number().optional(),
-    genre_id: z.number().optional(),
-    from_account_id: z.number().optional(),
-    to_account_id: z.number().optional(),
-    place: z.string().optional(),
-    place_uid: z.string().optional(),
-    comment: z.string().optional(),
-    name: z.string().optional(),
-    created: z.string().optional(),
-    modified: z.string().optional()
-  }).nullable(),
+  record: z.custom<ZaimMoney>().nullable(),
   success: z.boolean(),
   message: z.string()
 });
@@ -143,7 +128,7 @@ export async function updateMoneyRecordTool(input: UpdateMoneyRecordInput): Prom
     }
     
     return {
-      record: response.money,
+      record: Array.isArray(response.money) ? response.money[0] : response.money,
       success: true,
       message: '記録を更新しました'
     };

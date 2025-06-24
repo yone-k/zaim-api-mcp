@@ -1,6 +1,7 @@
 import { z } from 'zod';
 import { TokenStorage } from '../../utils/token-storage.js';
 import type { ToolDefinition } from '../../types/mcp.js';
+import type { ZaimMoney } from '../../types/zaim-api.js';
 
 /**
  * 記録削除ツールの入力スキーマ
@@ -16,23 +17,7 @@ export type DeleteMoneyRecordInput = z.infer<typeof DeleteMoneyRecordInputSchema
  * 記録削除結果の出力スキーマ
  */
 export const DeleteMoneyRecordOutputSchema = z.object({
-  deleted_record: z.object({
-    id: z.number(),
-    mode: z.enum(['payment', 'income', 'transfer']),
-    date: z.string(),
-    amount: z.number(),
-    currency_code: z.string(),
-    category_id: z.number().optional(),
-    genre_id: z.number().optional(),
-    from_account_id: z.number().optional(),
-    to_account_id: z.number().optional(),
-    place: z.string().optional(),
-    place_uid: z.string().optional(),
-    comment: z.string().optional(),
-    name: z.string().optional(),
-    created: z.string().optional(),
-    modified: z.string().optional()
-  }).nullable(),
+  deleted_record: z.custom<ZaimMoney>().nullable(),
   success: z.boolean(),
   message: z.string()
 });
@@ -85,7 +70,7 @@ export async function deleteMoneyRecordTool(input: DeleteMoneyRecordInput): Prom
     }
     
     return {
-      deleted_record: response.money,
+      deleted_record: Array.isArray(response.money) ? response.money[0] : response.money,
       success: true,
       message: '記録を削除しました'
     };

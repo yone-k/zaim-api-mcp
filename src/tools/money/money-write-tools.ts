@@ -1,6 +1,7 @@
 import { z } from 'zod';
 import { TokenStorage } from '../../utils/token-storage.js';
 import type { ToolDefinition } from '../../types/mcp.js';
+import type { ZaimMoney } from '../../types/zaim-api.js';
 
 /**
  * 支出記録作成ツールの入力スキーマ
@@ -49,23 +50,7 @@ export type CreateTransferInput = z.infer<typeof CreateTransferInputSchema>;
  * 記録作成結果の出力スキーマ
  */
 export const CreateMoneyRecordOutputSchema = z.object({
-  record: z.object({
-    id: z.number(),
-    mode: z.enum(['payment', 'income', 'transfer']),
-    date: z.string(),
-    amount: z.number(),
-    currency_code: z.string(),
-    category_id: z.number().optional(),
-    genre_id: z.number().optional(),
-    from_account_id: z.number().optional(),
-    to_account_id: z.number().optional(),
-    place: z.string().optional(),
-    place_uid: z.string().optional(),
-    comment: z.string().optional(),
-    name: z.string().optional(),
-    created: z.string().optional(),
-    modified: z.string().optional()
-  }).nullable(),
+  record: z.custom<ZaimMoney>().nullable(),
   success: z.boolean(),
   message: z.string()
 });
@@ -219,7 +204,7 @@ export async function createPaymentTool(input: CreatePaymentInput): Promise<Crea
     }
     
     return {
-      record: response.money,
+      record: Array.isArray(response.money) ? response.money[0] : response.money,
       success: true,
       message: '支出記録を作成しました'
     };
@@ -264,7 +249,7 @@ export async function createIncomeTool(input: CreateIncomeInput): Promise<Create
     }
     
     return {
-      record: response.money,
+      record: Array.isArray(response.money) ? response.money[0] : response.money,
       success: true,
       message: '収入記録を作成しました'
     };
@@ -308,7 +293,7 @@ export async function createTransferTool(input: CreateTransferInput): Promise<Cr
     }
     
     return {
-      record: response.money,
+      record: Array.isArray(response.money) ? response.money[0] : response.money,
       success: true,
       message: '振替記録を作成しました'
     };
