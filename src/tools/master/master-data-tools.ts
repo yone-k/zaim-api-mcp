@@ -1,6 +1,7 @@
 import { z } from 'zod';
 import { TokenStorage } from '../../utils/token-storage.js';
 import type { ToolDefinition } from '../../types/mcp.js';
+import type { ZaimCategory, ZaimGenre, ZaimAccount, ZaimCurrency } from '../../types/zaim-api.js';
 
 /**
  * ユーザーカテゴリ取得ツールの入力スキーマ
@@ -13,16 +14,7 @@ export type GetUserCategoriesInput = z.infer<typeof GetUserCategoriesInputSchema
  * ユーザーカテゴリ取得ツールの出力スキーマ
  */
 export const GetUserCategoriesOutputSchema = z.object({
-  categories: z.array(z.object({
-    id: z.number(),
-    name: z.string(),
-    mode: z.enum(['payment', 'income']),
-    sort: z.number(),
-    active: z.number(),
-    parent_category_id: z.number().optional(),
-    local_id: z.number().optional(),
-    modified: z.string().optional()
-  })),
+  categories: z.array(z.custom<ZaimCategory>()),
   count: z.number(),
   success: z.boolean(),
   message: z.string()
@@ -41,16 +33,7 @@ export type GetUserGenresInput = z.infer<typeof GetUserGenresInputSchema>;
  * ユーザージャンル取得ツールの出力スキーマ
  */
 export const GetUserGenresOutputSchema = z.object({
-  genres: z.array(z.object({
-    id: z.number(),
-    name: z.string(),
-    category_id: z.number(),
-    sort: z.number(),
-    active: z.number(),
-    parent_genre_id: z.number().optional(),
-    local_id: z.number().optional(),
-    modified: z.string().optional()
-  })),
+  genres: z.array(z.custom<ZaimGenre>()),
   count: z.number(),
   success: z.boolean(),
   message: z.string()
@@ -69,14 +52,7 @@ export type GetUserAccountsInput = z.infer<typeof GetUserAccountsInputSchema>;
  * ユーザー口座取得ツールの出力スキーマ
  */
 export const GetUserAccountsOutputSchema = z.object({
-  accounts: z.array(z.object({
-    id: z.number(),
-    name: z.string(),
-    sort: z.number(),
-    active: z.number(),
-    local_id: z.number().optional(),
-    modified: z.string().optional()
-  })),
+  accounts: z.array(z.custom<ZaimAccount>()),
   count: z.number(),
   success: z.boolean(),
   message: z.string()
@@ -97,13 +73,7 @@ export type GetDefaultCategoriesByModeInput = z.infer<typeof GetDefaultCategorie
  * デフォルトカテゴリ取得ツールの出力スキーマ
  */
 export const GetDefaultCategoriesByModeOutputSchema = z.object({
-  categories: z.array(z.object({
-    id: z.number(),
-    name: z.string(),
-    mode: z.enum(['payment', 'income']),
-    sort: z.number(),
-    active: z.number()
-  })),
+  categories: z.array(z.custom<ZaimCategory>()),
   count: z.number(),
   success: z.boolean(),
   message: z.string()
@@ -124,12 +94,7 @@ export type GetDefaultGenresByModeInput = z.infer<typeof GetDefaultGenresByModeI
  * デフォルトジャンル取得ツールの出力スキーマ
  */
 export const GetDefaultGenresByModeOutputSchema = z.object({
-  genres: z.array(z.object({
-    id: z.number(),
-    name: z.string(),
-    category_id: z.number(),
-    sort: z.number()
-  })),
+  genres: z.array(z.custom<ZaimGenre>()),
   count: z.number(),
   success: z.boolean(),
   message: z.string()
@@ -148,12 +113,7 @@ export type GetCurrenciesInput = z.infer<typeof GetCurrenciesInputSchema>;
  * 通貨一覧取得ツールの出力スキーマ
  */
 export const GetCurrenciesOutputSchema = z.object({
-  currencies: z.array(z.object({
-    currency_code: z.string(),
-    unit: z.string(),
-    name: z.string(),
-    point: z.number()
-  })),
+  currencies: z.array(z.custom<ZaimCurrency>()),
   count: z.number(),
   success: z.boolean(),
   message: z.string()
