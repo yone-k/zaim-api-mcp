@@ -156,19 +156,19 @@ export async function getUserInfoTool(input: GetUserInfoInput): Promise<GetUserI
     
     const userData = response.me;
     
-    // ユーザー情報を構築（利用可能なフィールドのみ）
-    const userInfo: Record<string, unknown> = {};
-    
-    if (userData.id !== undefined) userInfo.id = userData.id;
-    if (userData.login !== undefined) userInfo.login = userData.login;
-    if (userData.name !== undefined) userInfo.name = userData.name;
-    if (userData.profile_image_url !== undefined) userInfo.profile_image_url = userData.profile_image_url;
-    if (userData.input_count !== undefined) userInfo.input_count = userData.input_count;
-    if (userData.repeat_count !== undefined) userInfo.repeat_count = userData.repeat_count;
-    if (userData.day !== undefined) userInfo.day = userData.day;
+    // ユーザー情報を構築（必須フィールドを含む）
+    const userInfo = {
+      id: userData.id || 0,
+      name: userData.name || '',
+      login: userData.login,
+      profile_image_url: userData.profile_image_url,
+      input_count: userData.input_count,
+      repeat_count: userData.repeat_count,
+      day: userData.day
+    };
     
     return {
-      user: userInfo as any,
+      user: userInfo,
       success: true,
       message: 'ユーザー情報を取得しました'
     };

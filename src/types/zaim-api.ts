@@ -14,6 +14,16 @@ export interface ZaimApiResponse<T = unknown> {
   timestamp?: string;
   /** ユーザー情報（認証API用） */
   me?: ZaimUser;
+  /** 家計簿データ（money関連API用） */
+  money?: ZaimMoney[];
+  /** カテゴリデータ（categories API用） */
+  categories?: ZaimCategory[];
+  /** ジャンルデータ（genres API用） */
+  genres?: ZaimGenre[];
+  /** 口座データ（accounts API用） */
+  accounts?: ZaimAccount[];
+  /** 通貨データ（currencies API用） */
+  currencies?: ZaimCurrency[];
 }
 
 /**
