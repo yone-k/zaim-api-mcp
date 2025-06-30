@@ -209,7 +209,7 @@ export async function getUserCategoriesTool(input: GetUserCategoriesInput): Prom
   void input;
   try {
     const client = TokenStorage.createZaimApiClient();
-    const response = await client.get('/v2/home/category');
+    const response = await client.get('/v2/home/category', { mapping: 1 });
     
     if (!response || typeof response !== 'object' || !Array.isArray(response.categories)) {
       return {
@@ -241,7 +241,7 @@ export async function getUserGenresTool(input: GetUserGenresInput): Promise<GetU
   void input;
   try {
     const client = TokenStorage.createZaimApiClient();
-    const response = await client.get('/v2/home/genre');
+    const response = await client.get('/v2/home/genre', { mapping: 1 });
     
     if (!response || typeof response !== 'object' || !Array.isArray(response.genres)) {
       return {
@@ -273,7 +273,7 @@ export async function getUserAccountsTool(input: GetUserAccountsInput): Promise<
   void input;
   try {
     const client = TokenStorage.createZaimApiClient();
-    const response = await client.get('/v2/home/account');
+    const response = await client.get('/v2/home/account', { mapping: 1 });
     
     if (!response || typeof response !== 'object' || !Array.isArray(response.accounts)) {
       return {
@@ -304,7 +304,7 @@ export async function getUserAccountsTool(input: GetUserAccountsInput): Promise<
 export async function getDefaultCategoriesByModeTool(input: GetDefaultCategoriesByModeInput): Promise<GetDefaultCategoriesByModeOutput> {
   try {
     const client = TokenStorage.createZaimApiClient();
-    const response = await client.get('/v2/category', { mode: input.mode });
+    const response = await client.get('/v2/category', { mapping: 1, mode: input.mode });
     
     if (!response || typeof response !== 'object' || !Array.isArray(response.categories)) {
       return {
@@ -335,7 +335,7 @@ export async function getDefaultCategoriesByModeTool(input: GetDefaultCategories
 export async function getDefaultGenresByModeTool(input: GetDefaultGenresByModeInput): Promise<GetDefaultGenresByModeOutput> {
   try {
     const client = TokenStorage.createZaimApiClient();
-    const response = await client.get('/v2/genre', { mode: input.mode });
+    const response = await client.get('/v2/genre', { mapping: 1, mode: input.mode });
     
     if (!response || typeof response !== 'object' || !Array.isArray(response.genres)) {
       return {
@@ -367,7 +367,7 @@ export async function getCurrenciesTool(input: GetCurrenciesInput): Promise<GetC
   void input;
   try {
     const client = TokenStorage.createZaimApiClient();
-    const response = await client.get('/v2/currency');
+    const response = await client.get('/v2/currency', { mapping: 1 });
     
     if (!response || typeof response !== 'object' || !Array.isArray(response.currencies)) {
       return {

@@ -10,7 +10,7 @@ export const CreatePaymentInputSchema = z.object({
   amount: z.number().positive().describe('金額'),
   date: z.string().describe('日付（YYYY-MM-DD形式）'),
   category_id: z.number().describe('カテゴリID'),
-  genre_id: z.number().optional().describe('ジャンルID'),
+  genre_id: z.number().describe('ジャンルID'),
   from_account_id: z.number().optional().describe('出金元口座ID'),
   place: z.string().optional().describe('場所・店舗名'),
   comment: z.string().optional().describe('メモ'),
@@ -99,7 +99,7 @@ export const createPaymentToolDefinition: ToolDefinition = {
         description: '品名'
       }
     },
-    required: ['amount', 'date', 'category_id'],
+    required: ['amount', 'date', 'category_id', 'genre_id'],
     additionalProperties: false
   }
 };
@@ -181,12 +181,12 @@ export async function createPaymentTool(input: CreatePaymentInput): Promise<Crea
     
     // リクエストボディの構築
     const body: Record<string, string | number> = {
+      mapping: 1,
       amount: input.amount,
       date: input.date,
-      category_id: input.category_id
+      category_id: input.category_id,
+      genre_id: input.genre_id
     };
-    
-    if (input.genre_id !== undefined) body.genre_id = input.genre_id;
     if (input.from_account_id !== undefined) body.from_account_id = input.from_account_id;
     if (input.place !== undefined) body.place = input.place;
     if (input.comment !== undefined) body.comment = input.comment;
@@ -228,6 +228,7 @@ export async function createIncomeTool(input: CreateIncomeInput): Promise<Create
     
     // リクエストボディの構築
     const body: Record<string, string | number> = {
+      mapping: 1,
       amount: input.amount,
       date: input.date,
       category_id: input.category_id
@@ -273,6 +274,7 @@ export async function createTransferTool(input: CreateTransferInput): Promise<Cr
     
     // リクエストボディの構築
     const body: Record<string, string | number> = {
+      mapping: 1,
       amount: input.amount,
       date: input.date,
       from_account_id: input.from_account_id,

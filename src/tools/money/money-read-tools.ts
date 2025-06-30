@@ -96,7 +96,9 @@ export async function getMoneyRecordsTool(input: GetMoneyRecordsInput): Promise<
     const client = TokenStorage.createZaimApiClient();
     
     // クエリパラメータの構築
-    const params: Record<string, string | number> = {};
+    const params: Record<string, string | number> = {
+      mapping: 1
+    };
     
     if (input.mode) {
       params.mode = input.mode;

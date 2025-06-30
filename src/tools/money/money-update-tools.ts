@@ -101,7 +101,9 @@ export async function updateMoneyRecordTool(input: UpdateMoneyRecordInput): Prom
     const client = TokenStorage.createZaimApiClient();
     
     // 更新するフィールドのみを含むボディを構築
-    const body: Record<string, string | number> = {};
+    const body: Record<string, string | number> = {
+      mapping: 1
+    };
     
     if (input.amount !== undefined) body.amount = input.amount;
     if (input.date !== undefined) body.date = input.date;
