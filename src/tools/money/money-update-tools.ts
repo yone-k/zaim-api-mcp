@@ -18,7 +18,15 @@ export const UpdateMoneyRecordInputSchema = z.object({
   place: z.string().optional().describe('場所・店舗名'),
   comment: z.string().optional().describe('メモ'),
   name: z.string().optional().describe('品名')
-}).strict();
+}).strict().refine((data) => {
+  // paymentモードの場合はgenre_idが必須
+  if (data.mode === 'payment' && data.genre_id === undefined) {
+    return false;
+  }
+  return true;
+}, {
+  message: 'genre_id is required when mode is payment'
+});
 
 export type UpdateMoneyRecordInput = z.infer<typeof UpdateMoneyRecordInputSchema>;
 
@@ -65,7 +73,7 @@ export const updateMoneyRecordToolDefinition: ToolDefinition = {
       },
       genre_id: {
         type: 'number',
-        description: 'ジャンルID'
+        description: 'ジャンルID（paymentモードの場合は必須）'
       },
       from_account_id: {
         type: 'number',

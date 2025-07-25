@@ -8,7 +8,8 @@ import {
   createTransferToolDefinition,
   CreatePaymentInput,
   CreateIncomeInput,
-  CreateTransferInput
+  CreateTransferInput,
+  CreatePaymentInputSchema
 } from '../../src/tools/money/money-write-tools.js';
 import { ZaimApiClient } from '../../src/core/zaim-api-client.js';
 import { TokenStorage } from '../../src/utils/token-storage.js';
@@ -70,6 +71,7 @@ describe('Money Write Tools', () => {
       const result = await createPaymentTool(input);
 
       expect(mockClient.post).toHaveBeenCalledWith('/v2/home/money/payment', {
+        mapping: 1,
         amount: 1000,
         date: '2024-01-01',
         category_id: 101,
@@ -93,6 +95,7 @@ describe('Money Write Tools', () => {
           amount: 500,
           currency_code: 'JPY',
           category_id: 102,
+          genre_id: 10201,
           created: '2024-01-02 10:00:00'
         }
       };
@@ -101,14 +104,17 @@ describe('Money Write Tools', () => {
       const input: CreatePaymentInput = {
         amount: 500,
         date: '2024-01-02',
-        category_id: 102
+        category_id: 102,
+        genre_id: 10201
       };
       const result = await createPaymentTool(input);
 
       expect(mockClient.post).toHaveBeenCalledWith('/v2/home/money/payment', {
+        mapping: 1,
         amount: 500,
         date: '2024-01-02',
-        category_id: 102
+        category_id: 102,
+        genre_id: 10201
       });
       expect(result.success).toBe(true);
     });
@@ -177,6 +183,7 @@ describe('Money Write Tools', () => {
       const result = await createIncomeTool(input);
 
       expect(mockClient.post).toHaveBeenCalledWith('/v2/home/money/income', {
+        mapping: 1,
         amount: 200000,
         date: '2024-01-15',
         category_id: 201,
@@ -214,6 +221,7 @@ describe('Money Write Tools', () => {
       const result = await createIncomeTool(input);
 
       expect(mockClient.post).toHaveBeenCalledWith('/v2/home/money/income', {
+        mapping: 1,
         amount: 50000,
         date: '2024-01-20',
         category_id: 202,
@@ -250,6 +258,7 @@ describe('Money Write Tools', () => {
       const result = await createTransferTool(input);
 
       expect(mockClient.post).toHaveBeenCalledWith('/v2/home/money/transfer', {
+        mapping: 1,
         amount: 10000,
         date: '2024-01-10',
         from_account_id: 1,
@@ -316,6 +325,24 @@ describe('Money Write Tools', () => {
       expect(createPaymentToolDefinition.inputSchema.required).toContain('amount');
       expect(createPaymentToolDefinition.inputSchema.required).toContain('date');
       expect(createPaymentToolDefinition.inputSchema.required).toContain('category_id');
+      expect(createPaymentToolDefinition.inputSchema.required).toContain('genre_id');
+    });
+
+    it('should require genre_id for payment creation', () => {
+      // genre_idが必須であることを確認するテスト
+      const input = {
+        amount: 1000,
+        date: '2024-01-01',
+        category_id: 101
+        // genre_id を意図的に省略
+      };
+      
+      // Zodスキーマでバリデーションしたときにエラーになることを期待
+      const result = CreatePaymentInputSchema.safeParse(input);
+      expect(result.success).toBe(false);
+      if (!result.success) {
+        expect(result.error.issues.some(issue => issue.path.includes('genre_id'))).toBe(true);
+      }
     });
 
     it('should have correct createIncomeToolDefinition', () => {

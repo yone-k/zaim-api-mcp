@@ -2,7 +2,8 @@ import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { 
   updateMoneyRecordTool,
   updateMoneyRecordToolDefinition,
-  UpdateMoneyRecordInput
+  UpdateMoneyRecordInput,
+  UpdateMoneyRecordInputSchema
 } from '../../src/tools/money/money-update-tools.js';
 import { ZaimApiClient } from '../../src/core/zaim-api-client.js';
 import { TokenStorage } from '../../src/utils/token-storage.js';
@@ -62,6 +63,7 @@ describe('Money Update Tools', () => {
       const result = await updateMoneyRecordTool(input);
 
       expect(mockClient.put).toHaveBeenCalledWith('/v2/home/money/payment/12345', {
+        mapping: 1,
         amount: 1500,
         place: 'コンビニ',
         comment: '昼食'
@@ -98,6 +100,7 @@ describe('Money Update Tools', () => {
       const result = await updateMoneyRecordTool(input);
 
       expect(mockClient.put).toHaveBeenCalledWith('/v2/home/money/income/12346', {
+        mapping: 1,
         amount: 250000,
         comment: '給料+ボーナス'
       });
@@ -129,6 +132,7 @@ describe('Money Update Tools', () => {
       const result = await updateMoneyRecordTool(input);
 
       expect(mockClient.put).toHaveBeenCalledWith('/v2/home/money/transfer/12347', {
+        mapping: 1,
         amount: 20000,
         comment: '定期預金へ'
       });
@@ -169,6 +173,7 @@ describe('Money Update Tools', () => {
       const result = await updateMoneyRecordTool(input);
 
       expect(mockClient.put).toHaveBeenCalledWith('/v2/home/money/payment/12348', {
+        mapping: 1,
         amount: 3000,
         date: '2024-01-05',
         category_id: 102,
@@ -239,6 +244,7 @@ describe('Money Update Tools', () => {
 
       // amount, date, etc. should not be included if not specified
       expect(mockClient.put).toHaveBeenCalledWith('/v2/home/money/payment/12349', {
+        mapping: 1,
         comment: '更新されたコメント'
       });
       expect(result.success).toBe(true);
@@ -265,6 +271,25 @@ describe('Money Update Tools', () => {
     it('should have mode enum in tool definition', () => {
       const modeProperty = updateMoneyRecordToolDefinition.inputSchema.properties.mode;
       expect(modeProperty?.enum).toEqual(['payment', 'income', 'transfer']);
+    });
+
+    it('should require genre_id when updating payment records', () => {
+      // paymentモードでgenre_idが必須であることを確認するテスト
+      const input = {
+        id: 12345,
+        mode: 'payment' as const,
+        amount: 1000
+        // genre_id を意図的に省略
+      };
+      
+      // Zodスキーマでバリデーションしたときにエラーになることを期待
+      const result = UpdateMoneyRecordInputSchema.safeParse(input);
+      expect(result.success).toBe(false);
+      if (!result.success) {
+        expect(result.error.issues.some(issue => 
+          issue.message.includes('genre_id is required when mode is payment')
+        )).toBe(true);
+      }
     });
   });
 });
