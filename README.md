@@ -7,7 +7,7 @@ Zaimの家計簿データを取得・作成・更新・削除する、Go製のMC
 ## 特徴
 
 - 認証・ユーザー情報、家計簿、マスターデータを扱う18ツール
-- 公式Go MCP SDK v1.8.0と、[zaim-cli](https://github.com/yone-k/zaim-cli) v0.3.0のSDKを使用
+- 公式Go MCP SDK v1.8.0と、Zaim API向けのGo SDK [go-zaim](https://github.com/yone-k/go-zaim) v0.1.0を使用
 - MCP 2026-07-28、2025-11-25、2025-06-18、2025-03-26、2024-11-05に対応
 - JSON Schemaで入力・出力を検証し、結果を`structuredContent`とJSONテキストで返却
 - 小数金額やAPI由来の追加フィールドを保持

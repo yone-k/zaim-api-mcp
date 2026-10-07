@@ -4,10 +4,10 @@ import (
 	"context"
 
 	"github.com/modelcontextprotocol/go-sdk/mcp"
+	"github.com/yone-k/go-zaim"
 	"github.com/yone-k/zaim-api-mcp/internal/config"
 	"github.com/yone-k/zaim-api-mcp/internal/mcp/tools"
 	"github.com/yone-k/zaim-api-mcp/internal/version"
-	"github.com/yone-k/zaim-cli/pkg/zaim"
 )
 
 // NewServer constructs the stdio-capable server without requiring credentials.

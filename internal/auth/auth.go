@@ -15,8 +15,8 @@ import (
 	"strings"
 	"time"
 
+	"github.com/yone-k/go-zaim"
 	"github.com/yone-k/zaim-api-mcp/internal/config"
-	"github.com/yone-k/zaim-cli/pkg/zaim"
 )
 
 const usage = `使い方: zaim-api-mcp auth login [--port 8080]
