@@ -1,0 +1,325 @@
+[
+  {
+    "name": "success with API fields preserved",
+    "arguments": {
+      "id": 42,
+      "mode": "payment"
+    },
+    "credentialsPresent": true,
+    "apiRequest": {
+      "method": "DELETE",
+      "path": "/v2/home/money/payment/42",
+      "query": {},
+      "form": {}
+    },
+    "apiResponse": {
+      "status": 200,
+      "body": "{\"money\":{\"id\":42,\"mode\":\"payment\",\"date\":\"2026-10-01\",\"amount\":1250.5,\"category_id\":101,\"genre_id\":201,\"account_id\":3,\"currency_code\":\"EUR\",\"comment\":\"昼食 & coffee\",\"extra_api_field\":{\"kept\":true}}}"
+    },
+    "expected": {
+      "isError": false,
+      "payload": {
+        "deleted_record": {
+          "id": 42,
+          "mode": "payment",
+          "date": "2026-10-01",
+          "amount": 1250.5,
+          "category_id": 101,
+          "genre_id": 201,
+          "account_id": 3,
+          "currency_code": "EUR",
+          "comment": "昼食 & coffee",
+          "extra_api_field": {
+            "kept": true
+          }
+        },
+        "success": true,
+        "message": "記録を削除しました"
+      },
+      "messageContains": ""
+    }
+  },
+  {
+    "name": "missing credentials",
+    "arguments": {
+      "id": 42,
+      "mode": "payment"
+    },
+    "credentialsPresent": false,
+    "apiRequest": null,
+    "apiResponse": null,
+    "expected": {
+      "isError": true,
+      "payload": {
+        "deleted_record": null,
+        "success": false,
+        "message": "記録の削除に失敗しました: Missing required environment variable: ZAIM_CONSUMER_KEY"
+      },
+      "messageContains": ""
+    }
+  },
+  {
+    "name": "HTTP failure",
+    "arguments": {
+      "id": 42,
+      "mode": "payment"
+    },
+    "credentialsPresent": true,
+    "apiRequest": {
+      "method": "DELETE",
+      "path": "/v2/home/money/payment/42",
+      "query": {},
+      "form": {}
+    },
+    "apiResponse": {
+      "status": 401,
+      "body": "{\"message\":\"denied\"}"
+    },
+    "expected": {
+      "isError": true,
+      "payload": {
+        "deleted_record": null,
+        "success": false,
+        "message": "記録の削除に失敗しました: Zaim API Error: 401 - denied"
+      },
+      "messageContains": ""
+    }
+  },
+  {
+    "name": "invalid JSON response",
+    "arguments": {
+      "id": 42,
+      "mode": "payment"
+    },
+    "credentialsPresent": true,
+    "apiRequest": {
+      "method": "DELETE",
+      "path": "/v2/home/money/payment/42",
+      "query": {},
+      "form": {}
+    },
+    "apiResponse": {
+      "status": 200,
+      "body": "{"
+    },
+    "expected": {
+      "isError": true,
+      "payload": {
+        "deleted_record": null,
+        "success": false,
+        "message": "記録の削除に失敗しました: 無効なレスポンス形式"
+      },
+      "messageContains": ""
+    }
+  },
+  {
+    "name": "missing API response fields",
+    "arguments": {
+      "id": 42,
+      "mode": "payment"
+    },
+    "credentialsPresent": true,
+    "apiRequest": {
+      "method": "DELETE",
+      "path": "/v2/home/money/payment/42",
+      "query": {},
+      "form": {}
+    },
+    "apiResponse": {
+      "status": 200,
+      "body": "{}"
+    },
+    "expected": {
+      "isError": true,
+      "payload": {
+        "deleted_record": null,
+        "success": false,
+        "message": "記録の削除に失敗しました: 無効なレスポンス形式"
+      },
+      "messageContains": ""
+    }
+  },
+  {
+    "name": "unknown argument",
+    "arguments": {
+      "id": 42,
+      "mode": "payment",
+      "extra": true
+    },
+    "credentialsPresent": true,
+    "apiRequest": null,
+    "apiResponse": null,
+    "expected": {
+      "isError": true,
+      "payload": null,
+      "messageContains": "extra"
+    }
+  },
+  {
+    "name": "missing required id",
+    "arguments": {
+      "mode": "payment"
+    },
+    "credentialsPresent": true,
+    "apiRequest": null,
+    "apiResponse": null,
+    "expected": {
+      "isError": true,
+      "payload": null,
+      "messageContains": "id"
+    }
+  },
+  {
+    "name": "missing required mode",
+    "arguments": {
+      "id": 42
+    },
+    "credentialsPresent": true,
+    "apiRequest": null,
+    "apiResponse": null,
+    "expected": {
+      "isError": true,
+      "payload": null,
+      "messageContains": "mode"
+    }
+  },
+  {
+    "name": "wrong type for id",
+    "arguments": {
+      "id": "invalid",
+      "mode": "payment"
+    },
+    "credentialsPresent": true,
+    "apiRequest": null,
+    "apiResponse": null,
+    "expected": {
+      "isError": true,
+      "payload": null,
+      "messageContains": "id"
+    }
+  },
+  {
+    "name": "wrong type for mode",
+    "arguments": {
+      "id": 42,
+      "mode": 99
+    },
+    "credentialsPresent": true,
+    "apiRequest": null,
+    "apiResponse": null,
+    "expected": {
+      "isError": true,
+      "payload": null,
+      "messageContains": "mode"
+    }
+  },
+  {
+    "name": "invalid mode",
+    "arguments": {
+      "id": 42,
+      "mode": "invalid"
+    },
+    "credentialsPresent": true,
+    "apiRequest": null,
+    "apiResponse": null,
+    "expected": {
+      "isError": true,
+      "payload": null,
+      "messageContains": "mode"
+    }
+  },
+  {
+    "name": "money array response",
+    "arguments": {
+      "id": 42,
+      "mode": "payment"
+    },
+    "credentialsPresent": true,
+    "apiRequest": {
+      "method": "DELETE",
+      "path": "/v2/home/money/payment/42",
+      "query": {},
+      "form": {}
+    },
+    "apiResponse": {
+      "status": 200,
+      "body": "{\"money\":[{\"id\":42,\"mode\":\"payment\",\"date\":\"2026-10-01\",\"amount\":1250.5,\"category_id\":101,\"genre_id\":201,\"account_id\":3,\"currency_code\":\"EUR\",\"comment\":\"昼食 & coffee\",\"extra_api_field\":{\"kept\":true}}]}"
+    },
+    "expected": {
+      "isError": false,
+      "payload": {
+        "deleted_record": {
+          "id": 42,
+          "mode": "payment",
+          "date": "2026-10-01",
+          "amount": 1250.5,
+          "category_id": 101,
+          "genre_id": 201,
+          "account_id": 3,
+          "currency_code": "EUR",
+          "comment": "昼食 & coffee",
+          "extra_api_field": {
+            "kept": true
+          }
+        },
+        "success": true,
+        "message": "記録を削除しました"
+      },
+      "messageContains": ""
+    }
+  },
+  {
+    "name": "empty money array",
+    "arguments": {
+      "id": 42,
+      "mode": "payment"
+    },
+    "credentialsPresent": true,
+    "apiRequest": {
+      "method": "DELETE",
+      "path": "/v2/home/money/payment/42",
+      "query": {},
+      "form": {}
+    },
+    "apiResponse": {
+      "status": 200,
+      "body": "{\"money\":[]}"
+    },
+    "expected": {
+      "isError": true,
+      "payload": {
+        "deleted_record": null,
+        "success": false,
+        "message": "記録の削除に失敗しました: 無効なレスポンス形式"
+      },
+      "messageContains": ""
+    }
+  },
+  {
+    "name": "invalid money type",
+    "arguments": {
+      "id": 42,
+      "mode": "payment"
+    },
+    "credentialsPresent": true,
+    "apiRequest": {
+      "method": "DELETE",
+      "path": "/v2/home/money/payment/42",
+      "query": {},
+      "form": {}
+    },
+    "apiResponse": {
+      "status": 200,
+      "body": "{\"money\":true}"
+    },
+    "expected": {
+      "isError": true,
+      "payload": {
+        "deleted_record": null,
+        "success": false,
+        "message": "記録の削除に失敗しました: 無効なレスポンス形式"
+      },
+      "messageContains": ""
+    }
+  }
+]

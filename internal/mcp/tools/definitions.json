@@ -1,0 +1,359 @@
+[
+  {
+    "name": "zaim_check_auth_status",
+    "description": "Zaim APIの認証状態をチェックし、アクセストークンの有効性を確認します",
+    "inputSchema": {
+      "type": "object",
+      "properties": {},
+      "required": [],
+      "additionalProperties": false
+    }
+  },
+  {
+    "name": "zaim_get_user_info",
+    "description": "Zaimユーザーの詳細情報（プロフィール、統計情報等）を取得します",
+    "inputSchema": {
+      "type": "object",
+      "properties": {},
+      "required": [],
+      "additionalProperties": false
+    }
+  },
+  {
+    "name": "zaim_get_money_records",
+    "description": "Zaim家計簿の支出・収入・振替記録を取得します。日付範囲、カテゴリ、モードでフィルタリング可能です。",
+    "inputSchema": {
+      "type": "object",
+      "properties": {
+        "mode": {
+          "type": "string",
+          "enum": [
+            "payment",
+            "income",
+            "transfer"
+          ],
+          "description": "記録の種類（支出/収入/振替）"
+        },
+        "start_date": {
+          "type": "string",
+          "description": "開始日（YYYY-MM-DD形式）"
+        },
+        "end_date": {
+          "type": "string",
+          "description": "終了日（YYYY-MM-DD形式）"
+        },
+        "category_id": {
+          "type": "number",
+          "description": "カテゴリID"
+        },
+        "limit": {
+          "type": "number",
+          "description": "取得件数（最大100件）",
+          "default": 20
+        },
+        "page": {
+          "type": "number",
+          "description": "ページ番号（1から開始）",
+          "default": 1
+        }
+      },
+      "required": [],
+      "additionalProperties": false
+    }
+  },
+  {
+    "name": "zaim_create_payment",
+    "description": "Zaimに支出記録を作成します",
+    "inputSchema": {
+      "type": "object",
+      "properties": {
+        "amount": {
+          "type": "number",
+          "description": "金額"
+        },
+        "date": {
+          "type": "string",
+          "description": "日付（YYYY-MM-DD形式）"
+        },
+        "category_id": {
+          "type": "number",
+          "description": "カテゴリID"
+        },
+        "genre_id": {
+          "type": "number",
+          "description": "ジャンルID"
+        },
+        "from_account_id": {
+          "type": "number",
+          "description": "出金元口座ID"
+        },
+        "place": {
+          "type": "string",
+          "description": "場所・店舗名"
+        },
+        "comment": {
+          "type": "string",
+          "description": "メモ"
+        },
+        "name": {
+          "type": "string",
+          "description": "品名"
+        }
+      },
+      "required": [
+        "amount",
+        "date",
+        "category_id",
+        "genre_id"
+      ],
+      "additionalProperties": false
+    }
+  },
+  {
+    "name": "zaim_create_income",
+    "description": "Zaimに収入記録を作成します",
+    "inputSchema": {
+      "type": "object",
+      "properties": {
+        "amount": {
+          "type": "number",
+          "description": "金額"
+        },
+        "date": {
+          "type": "string",
+          "description": "日付（YYYY-MM-DD形式）"
+        },
+        "category_id": {
+          "type": "number",
+          "description": "カテゴリID"
+        },
+        "to_account_id": {
+          "type": "number",
+          "description": "入金先口座ID"
+        },
+        "place": {
+          "type": "string",
+          "description": "場所・会社名"
+        },
+        "comment": {
+          "type": "string",
+          "description": "メモ"
+        }
+      },
+      "required": [
+        "amount",
+        "date",
+        "category_id"
+      ],
+      "additionalProperties": false
+    }
+  },
+  {
+    "name": "zaim_create_transfer",
+    "description": "Zaimに振替記録を作成します（口座間の資金移動）",
+    "inputSchema": {
+      "type": "object",
+      "properties": {
+        "amount": {
+          "type": "number",
+          "description": "金額"
+        },
+        "date": {
+          "type": "string",
+          "description": "日付（YYYY-MM-DD形式）"
+        },
+        "from_account_id": {
+          "type": "number",
+          "description": "出金元口座ID"
+        },
+        "to_account_id": {
+          "type": "number",
+          "description": "入金先口座ID"
+        },
+        "comment": {
+          "type": "string",
+          "description": "メモ"
+        }
+      },
+      "required": [
+        "amount",
+        "date",
+        "from_account_id",
+        "to_account_id"
+      ],
+      "additionalProperties": false
+    }
+  },
+  {
+    "name": "zaim_update_money_record",
+    "description": "Zaimの既存の家計簿記録を更新します",
+    "inputSchema": {
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "number",
+          "description": "更新する記録のID"
+        },
+        "mode": {
+          "type": "string",
+          "enum": [
+            "payment",
+            "income",
+            "transfer"
+          ],
+          "description": "記録の種類"
+        },
+        "amount": {
+          "type": "number",
+          "description": "金額"
+        },
+        "date": {
+          "type": "string",
+          "description": "日付（YYYY-MM-DD形式）"
+        },
+        "category_id": {
+          "type": "number",
+          "description": "カテゴリID"
+        },
+        "genre_id": {
+          "type": "number",
+          "description": "ジャンルID（paymentモードの場合は必須）"
+        },
+        "from_account_id": {
+          "type": "number",
+          "description": "出金元口座ID（支出・振替の場合）"
+        },
+        "to_account_id": {
+          "type": "number",
+          "description": "入金先口座ID（収入・振替の場合）"
+        },
+        "place": {
+          "type": "string",
+          "description": "場所・店舗名"
+        },
+        "comment": {
+          "type": "string",
+          "description": "メモ"
+        },
+        "name": {
+          "type": "string",
+          "description": "品名"
+        }
+      },
+      "required": [
+        "id",
+        "mode"
+      ],
+      "additionalProperties": false
+    }
+  },
+  {
+    "name": "zaim_delete_money_record",
+    "description": "Zaimの家計簿記録を削除します。削除は永続的で復元できません。",
+    "inputSchema": {
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "number",
+          "description": "削除する記録のID"
+        },
+        "mode": {
+          "type": "string",
+          "enum": [
+            "payment",
+            "income",
+            "transfer"
+          ],
+          "description": "記録の種類"
+        }
+      },
+      "required": [
+        "id",
+        "mode"
+      ],
+      "additionalProperties": false
+    }
+  },
+  {
+    "name": "zaim_get_user_categories",
+    "description": "Zaimユーザーのカスタムカテゴリ一覧を取得します",
+    "inputSchema": {
+      "type": "object",
+      "properties": {},
+      "required": [],
+      "additionalProperties": false
+    }
+  },
+  {
+    "name": "zaim_get_user_genres",
+    "description": "Zaimユーザーのカスタムジャンル一覧を取得します",
+    "inputSchema": {
+      "type": "object",
+      "properties": {},
+      "required": [],
+      "additionalProperties": false
+    }
+  },
+  {
+    "name": "zaim_get_user_accounts",
+    "description": "Zaimユーザーの口座一覧を取得します",
+    "inputSchema": {
+      "type": "object",
+      "properties": {},
+      "required": [],
+      "additionalProperties": false
+    }
+  },
+  {
+    "name": "zaim_get_default_categories",
+    "description": "Zaimのデフォルトカテゴリ一覧を取得します（支出または収入）",
+    "inputSchema": {
+      "type": "object",
+      "properties": {
+        "mode": {
+          "type": "string",
+          "enum": [
+            "payment",
+            "income"
+          ],
+          "description": "カテゴリのモード（支出/収入）"
+        }
+      },
+      "required": [
+        "mode"
+      ],
+      "additionalProperties": false
+    }
+  },
+  {
+    "name": "zaim_get_default_genres",
+    "description": "Zaimのデフォルトジャンル一覧を取得します（支出または収入）",
+    "inputSchema": {
+      "type": "object",
+      "properties": {
+        "mode": {
+          "type": "string",
+          "enum": [
+            "payment",
+            "income"
+          ],
+          "description": "ジャンルのモード（支出/収入）"
+        }
+      },
+      "required": [
+        "mode"
+      ],
+      "additionalProperties": false
+    }
+  },
+  {
+    "name": "zaim_get_currencies",
+    "description": "Zaimで利用可能な通貨一覧を取得します",
+    "inputSchema": {
+      "type": "object",
+      "properties": {},
+      "required": [],
+      "additionalProperties": false
+    }
+  }
+]

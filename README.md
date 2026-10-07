@@ -2,127 +2,79 @@
 
 [English README](README.en.md)
 
-Zaim APIとの連携を可能にするMCP (Model Context Protocol) サーバーです。OAuth 1.0a認証を使用してZaimの家計簿データの取得・操作を行います。
+Zaimの家計簿データを取得・作成・更新・削除する、Go製のMCPサーバーです。MCPクライアントとはstdioで通信し、ZaimにはOAuth 1.0aで認証します。
 
 ## 特徴
 
-- Zaim API（OAuth 1.0a）との完全な統合
-- 14個の包括的なツールセット
-- 家計簿データの取得・作成・更新・削除
-- マスターデータ（カテゴリ、ジャンル、口座、通貨）の取得
-- TypeScriptベースの型安全な実装
-- Zodスキーマによる厳密なバリデーション
-- 包括的なテストカバレッジ（128テスト）
-- Dockerサポート
-
-## 実装済みツール
-
-### 認証・ユーザー情報
-- `zaim_check_auth_status` - 認証状態の確認
-- `zaim_get_user_info` - ユーザー情報の取得
-
-### 家計簿データ操作
-- `zaim_get_money_records` - 家計簿記録の取得（フィルタリング・ページネーション対応）
-- `zaim_create_payment` - 支出記録の作成
-- `zaim_create_income` - 収入記録の作成  
-- `zaim_create_transfer` - 振替記録の作成
-- `zaim_update_money_record` - 既存記録の更新
-- `zaim_delete_money_record` - 記録の削除
-
-### マスターデータ取得
-- `zaim_get_user_categories` - ユーザーカテゴリ一覧
-- `zaim_get_user_genres` - ユーザージャンル一覧
-- `zaim_get_user_accounts` - ユーザー口座一覧
-- `zaim_get_default_categories` - デフォルトカテゴリ一覧
-- `zaim_get_default_genres` - デフォルトジャンル一覧
-- `zaim_get_currencies` - 利用可能通貨一覧
+- 認証・ユーザー情報、家計簿、マスターデータを扱う14ツール
+- 公式Go MCP SDK v1.8.0と、[zaim-cli](https://github.com/yone-k/zaim-cli) v0.3.0のSDKを使用
+- MCP 2026-07-28、2025-11-25、2025-06-18、2025-03-26、2024-11-05に対応
+- JSON Schemaで入力・出力を検証し、結果を`structuredContent`とJSONテキストで返却
+- 小数金額やAPI由来の追加フィールドを保持
+- GoバイナリとDockerによる起動
 
 ## 要件
 
-- Docker（推奨）
-- Node.js 22+（ローカル開発時）
-- Zaim APIのOAuth認証情報
-  - Consumer Key
-  - Consumer Secret
-  - Access Token
-  - Access Token Secret
+ソースからビルドする場合はGo 1.26.2以上、Dockerで起動する場合はDockerが必要です。
 
-## 環境変数設定
+Zaimの認証情報は、次の4つの環境変数で設定します。
 
 ```bash
-# 必須：Zaim API認証情報
-ZAIM_CONSUMER_KEY=your_consumer_key
-ZAIM_CONSUMER_SECRET=your_consumer_secret
-ZAIM_ACCESS_TOKEN=your_access_token
-ZAIM_ACCESS_TOKEN_SECRET=your_access_token_secret
+export ZAIM_CONSUMER_KEY=your_consumer_key
+export ZAIM_CONSUMER_SECRET=your_consumer_secret
+export ZAIM_ACCESS_TOKEN=your_access_token
+export ZAIM_ACCESS_TOKEN_SECRET=your_access_token_secret
 ```
 
-## インストール
+認証情報はツール実行時に検証します。未設定でもサーバーの起動とツール一覧の取得はできます。
 
-### Dockerを使用（推奨）
+## インストール・起動
+
+### ローカルバイナリ
 
 ```bash
-# リポジトリをクローン
 git clone https://github.com/yone-k/zaim-api-mcp.git
 cd zaim-api-mcp
 
-# Dockerイメージをビルド
-docker build -t zaim-api-mcp .
+go build -o dist/zaim-api-mcp ./cmd/zaim-api-mcp
+./dist/zaim-api-mcp
 ```
 
-### ローカル開発
+Goのbinディレクトリへインストールする場合は、ソース取得後に次を実行します。
 
 ```bash
-# 依存関係をインストール
-npm install
-
-# 開発モードで開始
-npm run dev
-
-# テスト実行
-npm test
-
-# ビルド
-npm run build
+go install ./cmd/zaim-api-mcp
+zaim-api-mcp
 ```
 
-## Claude Desktop設定
+サーバーはstdinからMCPメッセージを受け取り、stdoutへ応答します。起動ログはstderrへ出力します。
 
-### 1. 設定ファイルの場所
+### Docker
 
-**macOS**: `~/Library/Application Support/Claude/claude_desktop_config.json`  
-**Windows**: `%APPDATA%\Claude\claude_desktop_config.json`
+```bash
+docker build -t zaim-api-mcp .
+docker run --rm -i \
+  -e ZAIM_CONSUMER_KEY -e ZAIM_CONSUMER_SECRET \
+  -e ZAIM_ACCESS_TOKEN -e ZAIM_ACCESS_TOKEN_SECRET \
+  zaim-api-mcp
+```
 
-### 2. Docker設定（推奨）
+環境変数を設定したシェルから、Composeでも起動できます。
+
+```bash
+docker compose build
+docker compose run --rm -T zaim-api
+```
+
+## MCPクライアント設定
+
+サーバー名は従来の`zaim-api`を使います。`command`には、ビルドしたGoバイナリの絶対パスを指定してください。
 
 ```json
 {
   "mcpServers": {
     "zaim-api": {
-      "command": "docker",
-      "args": [
-        "run", 
-        "--rm", 
-        "-i",
-        "-e", "ZAIM_CONSUMER_KEY=your_consumer_key",
-        "-e", "ZAIM_CONSUMER_SECRET=your_consumer_secret",
-        "-e", "ZAIM_ACCESS_TOKEN=your_access_token",
-        "-e", "ZAIM_ACCESS_TOKEN_SECRET=your_access_token_secret",
-        "zaim-api-mcp"
-      ]
-    }
-  }
-}
-```
-
-### 3. ローカルビルド設定
-
-```json
-{
-  "mcpServers": {
-    "zaim-api": {
-      "command": "node",
-      "args": ["/path/to/zaim-api-mcp/dist/index.js"],
+      "command": "/absolute/path/to/zaim-api-mcp/dist/zaim-api-mcp",
       "env": {
         "ZAIM_CONSUMER_KEY": "your_consumer_key",
         "ZAIM_CONSUMER_SECRET": "your_consumer_secret",
@@ -134,120 +86,102 @@ npm run build
 }
 ```
 
-## 使用例
+Dockerを使う場合の設定例です。
 
-### 認証状態の確認
-```
-zaim_check_auth_status を使って認証が正しく設定されているか確認してください
-```
-
-### 家計簿データの取得
-```
-zaim_get_money_records を使って、2024年1月の支出記録を取得してください
-```
-
-### 支出の記録
-```
-zaim_create_payment を使って、本日1,500円の昼食代を食費カテゴリで記録してください
-```
-
-### カテゴリ一覧の取得
-```
-zaim_get_user_categories を使って利用可能なカテゴリ一覧を表示してください
-```
-
-## API設定
-
-`config/zaim-config.json`で詳細な設定が可能です：
-
-- APIタイムアウト設定
-- レート制限設定
-- キャッシュ設定
-- ログレベル設定
-
-## プロジェクト構造
-
-```
-zaim-api-mcp/
-├── src/
-│   ├── core/              # MCPサーバーコア機能
-│   │   ├── tool-handler.ts
-│   │   └── zaim-api-client.ts
-│   ├── tools/             # ツール実装
-│   │   ├── auth/          # 認証関連ツール
-│   │   ├── money/         # 家計簿データツール
-│   │   ├── master/        # マスターデータツール
-│   │   └── registry.ts    # ツール登録
-│   ├── types/             # 型定義
-│   ├── utils/             # ユーティリティ
-│   └── index.ts           # エントリーポイント
-├── tests/                 # テストファイル
-├── config/                # 設定ファイル
-└── docker-compose.yml     # Docker設定
+```json
+{
+  "mcpServers": {
+    "zaim-api": {
+      "command": "docker",
+      "args": [
+        "run", "--rm", "-i",
+        "-e", "ZAIM_CONSUMER_KEY",
+        "-e", "ZAIM_CONSUMER_SECRET",
+        "-e", "ZAIM_ACCESS_TOKEN",
+        "-e", "ZAIM_ACCESS_TOKEN_SECRET",
+        "zaim-api-mcp"
+      ],
+      "env": {
+        "ZAIM_CONSUMER_KEY": "your_consumer_key",
+        "ZAIM_CONSUMER_SECRET": "your_consumer_secret",
+        "ZAIM_ACCESS_TOKEN": "your_access_token",
+        "ZAIM_ACCESS_TOKEN_SECRET": "your_access_token_secret"
+      }
+    }
+  }
+}
 ```
 
-## 開発ガイド
+## ツール
 
-### Git ワークフロー
+| 分類 | ツール | 操作 |
+|---|---|---|
+| 認証 | `zaim_check_auth_status` | 認証状態の確認 |
+| ユーザー | `zaim_get_user_info` | プロフィール・統計情報の取得 |
+| 家計簿 | `zaim_get_money_records` | フィルター・ページ指定で記録を取得 |
+| 家計簿 | `zaim_create_payment` | 支出の作成 |
+| 家計簿 | `zaim_create_income` | 収入の作成 |
+| 家計簿 | `zaim_create_transfer` | 振替の作成 |
+| 家計簿 | `zaim_update_money_record` | 記録の更新 |
+| 家計簿 | `zaim_delete_money_record` | 記録の削除 |
+| マスター | `zaim_get_user_categories` | ユーザーカテゴリ一覧 |
+| マスター | `zaim_get_user_genres` | ユーザージャンル一覧 |
+| マスター | `zaim_get_user_accounts` | 口座一覧 |
+| マスター | `zaim_get_default_categories` | デフォルトカテゴリ一覧 |
+| マスター | `zaim_get_default_genres` | デフォルトジャンル一覧 |
+| マスター | `zaim_get_currencies` | 通貨一覧 |
 
-1. 機能ごとにブランチを作成
-2. TDD（テスト駆動開発）で実装
-3. すべてのテストが通ることを確認
-4. プルリクエストを作成
+ツール名・引数・既定値と、成功時のJSON形式は従来どおりです。
 
-### コミットメッセージ規約
+- 記録取得の既定値は`limit=20`・`page=1`です。
+- 作成・更新の`amount`は正数です。
+- 支出の更新には`genre_id`が必要です。
+- 入力検証・認証・API処理に失敗した場合は`isError=true`を返します。
 
-```
-feat: 新機能の追加
-fix: バグ修正
-docs: ドキュメントの変更
-refactor: リファクタリング
-test: テストの追加・修正
-chore: ビルドプロセスやツールの変更
-```
+### 対応プロトコル
 
-### 利用可能なスクリプト
+MCP 2026-07-28のクライアントは`server/discover`とリクエストごとの`_meta`を使い、旧仕様のクライアントは`initialize`で接続します。2024-10-07は対応バージョンに含まれません。
+
+## 開発・検証
 
 ```bash
-npm run build          # TypeScriptビルド
-npm run start          # 本番サーバー起動
-npm run dev            # 開発サーバー起動
-npm run lint           # ESLint実行
-npm run typecheck      # 型チェック
-npm test               # テスト実行
-npm run test:watch     # テスト監視モード
-npm run test:coverage  # カバレッジレポート
-npm run docker:build   # Dockerイメージビルド
-npm run docker:run     # Dockerコンテナ実行
-npm run docker:dev     # Docker Compose起動
+go test ./...
+go vet ./...
+go build -o dist/zaim-api-mcp ./cmd/zaim-api-mcp
 ```
 
-## トラブルシューティング
+14ツールの入力と期待する結果を収録した、199件のテストデータで互換性を検証します。API応答にはダミーHTTPサーバーを使います。
 
-### 認証エラー
-- 環境変数が正しく設定されているか確認
-- Zaim開発者サイトでアプリケーションの設定を確認
-- アクセストークンの有効期限を確認
+プロトコルテストでは実バイナリを起動し、新旧仕様での接続、stdoutとstderrの分離、EOF・SIGINT・SIGTERMによる終了を確認します。キャンセルがHTTP通信まで伝わることも検証します。
 
-### Docker関連
-- Dockerデーモンが起動しているか確認
-- 環境変数が正しく渡されているか確認
-- ログで詳細なエラーメッセージを確認
+Dockerイメージにも同じstdio検証を実行できます。
 
-## 貢献
+```bash
+docker build -t zaim-api-mcp .
+ZAIM_MCP_TEST_IMAGE=zaim-api-mcp go test ./internal/mcp -run TestStdioServer -count=1
+```
 
-1. リポジトリをフォーク
-2. フィーチャーブランチを作成 (`git checkout -b feat/amazing-feature`)
-3. 変更をコミット (`git commit -m 'feat: 素晴らしい機能を追加'`)
-4. ブランチをプッシュ (`git push origin feat/amazing-feature`)
-5. プルリクエストを作成
+テストは実Zaim APIへ接続しません。
+
+PR作成・更新時とmainへの更新時には、GitHub Actionsでコードの整形、vet、race検査付きテスト、ビルドを確認します。Dockerでも新旧仕様での接続と終了処理を検証します。
+
+### ディレクトリ構成
+
+```text
+cmd/zaim-api-mcp/       起動・終了処理
+internal/config/       環境変数と認証情報の伏字
+internal/mcp/          MCPサーバーと契約・プロトコルテスト
+internal/mcp/tools/    14ツール、入出力スキーマ、応答変換
+internal/version/      サーバーバージョン
+testdata/              互換性検証用のテストデータと既存ツール定義
+```
 
 ## ライセンス
 
-MITライセンス - 詳細は[LICENSE](LICENSE)ファイルを参照してください。
+[MIT](LICENSE)
 
 ## 関連リンク
 
-- [Zaim API ドキュメント](https://dev.zaim.net/)
+- [Zaim API](https://dev.zaim.net/)
 - [MCP仕様](https://modelcontextprotocol.io/)
-- [Claude Desktop](https://claude.ai/desktop)
+- [公式Go MCP SDK](https://github.com/modelcontextprotocol/go-sdk)

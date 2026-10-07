@@ -1,0 +1,166 @@
+[
+  {
+    "name": "success with API fields preserved",
+    "arguments": {},
+    "credentialsPresent": true,
+    "apiRequest": {
+      "method": "GET",
+      "path": "/v2/home/user/verify",
+      "query": {
+        "mapping": "1"
+      },
+      "form": {}
+    },
+    "apiResponse": {
+      "status": 200,
+      "body": "{\"me\":{\"id\":7,\"login\":\"sample\",\"name\":\"テスト\",\"profile_image_url\":\"https://example.test/avatar\",\"input_count\":2,\"repeat_count\":3,\"day\":15,\"extra_api_field\":\"not selected\"}}"
+    },
+    "expected": {
+      "isError": false,
+      "payload": {
+        "isAuthenticated": true,
+        "user": {
+          "id": 7,
+          "login": "sample",
+          "name": "テスト"
+        },
+        "message": "認証に成功しました"
+      },
+      "messageContains": ""
+    }
+  },
+  {
+    "name": "missing credentials",
+    "arguments": {},
+    "credentialsPresent": false,
+    "apiRequest": null,
+    "apiResponse": null,
+    "expected": {
+      "isError": true,
+      "payload": {
+        "isAuthenticated": false,
+        "user": null,
+        "message": "認証に失敗しました: Missing required environment variable: ZAIM_CONSUMER_KEY"
+      },
+      "messageContains": ""
+    }
+  },
+  {
+    "name": "HTTP failure",
+    "arguments": {},
+    "credentialsPresent": true,
+    "apiRequest": {
+      "method": "GET",
+      "path": "/v2/home/user/verify",
+      "query": {
+        "mapping": "1"
+      },
+      "form": {}
+    },
+    "apiResponse": {
+      "status": 401,
+      "body": "{\"message\":\"denied\"}"
+    },
+    "expected": {
+      "isError": true,
+      "payload": {
+        "isAuthenticated": false,
+        "user": null,
+        "message": "認証に失敗しました: Zaim API Error: 401 - denied"
+      },
+      "messageContains": ""
+    }
+  },
+  {
+    "name": "invalid JSON response",
+    "arguments": {},
+    "credentialsPresent": true,
+    "apiRequest": {
+      "method": "GET",
+      "path": "/v2/home/user/verify",
+      "query": {
+        "mapping": "1"
+      },
+      "form": {}
+    },
+    "apiResponse": {
+      "status": 200,
+      "body": "{"
+    },
+    "expected": {
+      "isError": true,
+      "payload": {
+        "isAuthenticated": false,
+        "user": null,
+        "message": "認証に失敗しました: 無効なレスポンス形式"
+      },
+      "messageContains": ""
+    }
+  },
+  {
+    "name": "missing API response fields",
+    "arguments": {},
+    "credentialsPresent": true,
+    "apiRequest": {
+      "method": "GET",
+      "path": "/v2/home/user/verify",
+      "query": {
+        "mapping": "1"
+      },
+      "form": {}
+    },
+    "apiResponse": {
+      "status": 200,
+      "body": "{}"
+    },
+    "expected": {
+      "isError": true,
+      "payload": {
+        "isAuthenticated": false,
+        "user": null,
+        "message": "認証に失敗しました: 無効なレスポンス形式"
+      },
+      "messageContains": ""
+    }
+  },
+  {
+    "name": "unknown argument",
+    "arguments": {
+      "extra": true
+    },
+    "credentialsPresent": true,
+    "apiRequest": null,
+    "apiResponse": null,
+    "expected": {
+      "isError": true,
+      "payload": null,
+      "messageContains": "extra"
+    }
+  },
+  {
+    "name": "invalid user data",
+    "arguments": {},
+    "credentialsPresent": true,
+    "apiRequest": {
+      "method": "GET",
+      "path": "/v2/home/user/verify",
+      "query": {
+        "mapping": "1"
+      },
+      "form": {}
+    },
+    "apiResponse": {
+      "status": 200,
+      "body": "{\"me\":{\"id\":0,\"name\":\"\"}}"
+    },
+    "expected": {
+      "isError": true,
+      "payload": {
+        "isAuthenticated": false,
+        "user": null,
+        "message": "認証に失敗しました: 無効なユーザーデータ"
+      },
+      "messageContains": ""
+    }
+  }
+]

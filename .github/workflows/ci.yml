@@ -1,0 +1,48 @@
+name: CI
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+
+permissions:
+  contents: read
+
+env:
+  GOWORK: 'off'
+  FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
+
+jobs:
+  go:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-go@v5
+        with:
+          go-version-file: go.mod
+      - name: Check formatting
+        run: test -z "$(gofmt -l cmd internal)"
+      - name: Vet
+        run: go vet ./...
+      - name: Test
+        run: go test -race ./...
+      - name: Build
+        run: go build -o dist/zaim-api-mcp ./cmd/zaim-api-mcp
+
+  docker:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-go@v5
+        with:
+          go-version-file: go.mod
+      - name: Build container
+        run: docker build -t zaim-api-mcp .
+      - name: Test container protocol and shutdown
+        env:
+          ZAIM_MCP_TEST_IMAGE: zaim-api-mcp
+        run: go test ./internal/mcp -run TestStdioServer -count=1 -timeout=90s
+      - name: Verify container runtime
+        run: |
+          docker run --rm --network none --entrypoint sh zaim-api-mcp -c \
+            'test -s /etc/ssl/certs/ca-certificates.crt && ! command -v node && ! command -v npm && test "$(id -u)" = 65532'
