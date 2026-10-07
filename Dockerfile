@@ -1,21 +1,15 @@
-FROM node:22-alpine
+FROM golang:1.26.2-alpine AS builder
 
-WORKDIR /app
+WORKDIR /src
+ENV GOWORK=off
+COPY go.mod go.sum ./
+RUN go mod download
+COPY cmd/ ./cmd/
+COPY internal/ ./internal/
+RUN CGO_ENABLED=0 go build -trimpath -ldflags="-s -w" -o /out/zaim-api-mcp ./cmd/zaim-api-mcp
 
-# Copy package files
-COPY package*.json ./
-
-# Install dependencies
-RUN npm ci --only=production
-
-# Copy source code
-COPY . .
-
-# Build the application
-RUN npm run build
-
-# Remove dev dependencies and source files
-RUN rm -rf src/ tsconfig.json vitest.config.ts && \
-    npm prune --production
-
-ENTRYPOINT ["node", "dist/index.js"]
+FROM alpine:3.23
+RUN apk add --no-cache ca-certificates
+COPY --from=builder /out/zaim-api-mcp /usr/local/bin/zaim-api-mcp
+USER 65532:65532
+ENTRYPOINT ["/usr/local/bin/zaim-api-mcp"]

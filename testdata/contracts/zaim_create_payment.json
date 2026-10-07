@@ -1,0 +1,606 @@
+[
+  {
+    "name": "success with API fields preserved",
+    "arguments": {
+      "amount": 1250.5,
+      "date": "2026-10-01",
+      "category_id": 101,
+      "genre_id": 201
+    },
+    "credentialsPresent": true,
+    "apiRequest": {
+      "method": "POST",
+      "path": "/v2/home/money/payment",
+      "query": {},
+      "form": {
+        "mapping": "1",
+        "amount": "1250.5",
+        "date": "2026-10-01",
+        "category_id": "101",
+        "genre_id": "201"
+      }
+    },
+    "apiResponse": {
+      "status": 200,
+      "body": "{\"money\":{\"id\":42,\"mode\":\"payment\",\"date\":\"2026-10-01\",\"amount\":1250.5,\"category_id\":101,\"genre_id\":201,\"account_id\":3,\"currency_code\":\"EUR\",\"comment\":\"昼食 & coffee\",\"extra_api_field\":{\"kept\":true}}}"
+    },
+    "expected": {
+      "isError": false,
+      "payload": {
+        "record": {
+          "id": 42,
+          "mode": "payment",
+          "date": "2026-10-01",
+          "amount": 1250.5,
+          "category_id": 101,
+          "genre_id": 201,
+          "account_id": 3,
+          "currency_code": "EUR",
+          "comment": "昼食 & coffee",
+          "extra_api_field": {
+            "kept": true
+          }
+        },
+        "success": true,
+        "message": "支出記録を作成しました"
+      },
+      "messageContains": ""
+    }
+  },
+  {
+    "name": "missing credentials",
+    "arguments": {
+      "amount": 1250.5,
+      "date": "2026-10-01",
+      "category_id": 101,
+      "genre_id": 201
+    },
+    "credentialsPresent": false,
+    "apiRequest": null,
+    "apiResponse": null,
+    "expected": {
+      "isError": true,
+      "payload": {
+        "record": null,
+        "success": false,
+        "message": "支出記録の作成に失敗しました: Missing required environment variable: ZAIM_CONSUMER_KEY"
+      },
+      "messageContains": ""
+    }
+  },
+  {
+    "name": "HTTP failure",
+    "arguments": {
+      "amount": 1250.5,
+      "date": "2026-10-01",
+      "category_id": 101,
+      "genre_id": 201
+    },
+    "credentialsPresent": true,
+    "apiRequest": {
+      "method": "POST",
+      "path": "/v2/home/money/payment",
+      "query": {},
+      "form": {
+        "mapping": "1",
+        "amount": "1250.5",
+        "date": "2026-10-01",
+        "category_id": "101",
+        "genre_id": "201"
+      }
+    },
+    "apiResponse": {
+      "status": 401,
+      "body": "{\"message\":\"denied\"}"
+    },
+    "expected": {
+      "isError": true,
+      "payload": {
+        "record": null,
+        "success": false,
+        "message": "支出記録の作成に失敗しました: Zaim API Error: 401 - denied"
+      },
+      "messageContains": ""
+    }
+  },
+  {
+    "name": "invalid JSON response",
+    "arguments": {
+      "amount": 1250.5,
+      "date": "2026-10-01",
+      "category_id": 101,
+      "genre_id": 201
+    },
+    "credentialsPresent": true,
+    "apiRequest": {
+      "method": "POST",
+      "path": "/v2/home/money/payment",
+      "query": {},
+      "form": {
+        "mapping": "1",
+        "amount": "1250.5",
+        "date": "2026-10-01",
+        "category_id": "101",
+        "genre_id": "201"
+      }
+    },
+    "apiResponse": {
+      "status": 200,
+      "body": "{"
+    },
+    "expected": {
+      "isError": true,
+      "payload": {
+        "record": null,
+        "success": false,
+        "message": "支出記録の作成に失敗しました: 無効なレスポンス形式"
+      },
+      "messageContains": ""
+    }
+  },
+  {
+    "name": "missing API response fields",
+    "arguments": {
+      "amount": 1250.5,
+      "date": "2026-10-01",
+      "category_id": 101,
+      "genre_id": 201
+    },
+    "credentialsPresent": true,
+    "apiRequest": {
+      "method": "POST",
+      "path": "/v2/home/money/payment",
+      "query": {},
+      "form": {
+        "mapping": "1",
+        "amount": "1250.5",
+        "date": "2026-10-01",
+        "category_id": "101",
+        "genre_id": "201"
+      }
+    },
+    "apiResponse": {
+      "status": 200,
+      "body": "{}"
+    },
+    "expected": {
+      "isError": true,
+      "payload": {
+        "record": null,
+        "success": false,
+        "message": "支出記録の作成に失敗しました: 無効なレスポンス形式"
+      },
+      "messageContains": ""
+    }
+  },
+  {
+    "name": "unknown argument",
+    "arguments": {
+      "amount": 1250.5,
+      "date": "2026-10-01",
+      "category_id": 101,
+      "genre_id": 201,
+      "extra": true
+    },
+    "credentialsPresent": true,
+    "apiRequest": null,
+    "apiResponse": null,
+    "expected": {
+      "isError": true,
+      "payload": null,
+      "messageContains": "extra"
+    }
+  },
+  {
+    "name": "missing required amount",
+    "arguments": {
+      "date": "2026-10-01",
+      "category_id": 101,
+      "genre_id": 201
+    },
+    "credentialsPresent": true,
+    "apiRequest": null,
+    "apiResponse": null,
+    "expected": {
+      "isError": true,
+      "payload": null,
+      "messageContains": "amount"
+    }
+  },
+  {
+    "name": "missing required date",
+    "arguments": {
+      "amount": 1250.5,
+      "category_id": 101,
+      "genre_id": 201
+    },
+    "credentialsPresent": true,
+    "apiRequest": null,
+    "apiResponse": null,
+    "expected": {
+      "isError": true,
+      "payload": null,
+      "messageContains": "date"
+    }
+  },
+  {
+    "name": "missing required category_id",
+    "arguments": {
+      "amount": 1250.5,
+      "date": "2026-10-01",
+      "genre_id": 201
+    },
+    "credentialsPresent": true,
+    "apiRequest": null,
+    "apiResponse": null,
+    "expected": {
+      "isError": true,
+      "payload": null,
+      "messageContains": "category_id"
+    }
+  },
+  {
+    "name": "missing required genre_id",
+    "arguments": {
+      "amount": 1250.5,
+      "date": "2026-10-01",
+      "category_id": 101
+    },
+    "credentialsPresent": true,
+    "apiRequest": null,
+    "apiResponse": null,
+    "expected": {
+      "isError": true,
+      "payload": null,
+      "messageContains": "genre_id"
+    }
+  },
+  {
+    "name": "wrong type for amount",
+    "arguments": {
+      "amount": "invalid",
+      "date": "2026-10-01",
+      "category_id": 101,
+      "genre_id": 201
+    },
+    "credentialsPresent": true,
+    "apiRequest": null,
+    "apiResponse": null,
+    "expected": {
+      "isError": true,
+      "payload": null,
+      "messageContains": "amount"
+    }
+  },
+  {
+    "name": "wrong type for date",
+    "arguments": {
+      "amount": 1250.5,
+      "date": 99,
+      "category_id": 101,
+      "genre_id": 201
+    },
+    "credentialsPresent": true,
+    "apiRequest": null,
+    "apiResponse": null,
+    "expected": {
+      "isError": true,
+      "payload": null,
+      "messageContains": "date"
+    }
+  },
+  {
+    "name": "wrong type for category_id",
+    "arguments": {
+      "amount": 1250.5,
+      "date": "2026-10-01",
+      "category_id": "invalid",
+      "genre_id": 201
+    },
+    "credentialsPresent": true,
+    "apiRequest": null,
+    "apiResponse": null,
+    "expected": {
+      "isError": true,
+      "payload": null,
+      "messageContains": "category_id"
+    }
+  },
+  {
+    "name": "wrong type for genre_id",
+    "arguments": {
+      "amount": 1250.5,
+      "date": "2026-10-01",
+      "category_id": 101,
+      "genre_id": "invalid"
+    },
+    "credentialsPresent": true,
+    "apiRequest": null,
+    "apiResponse": null,
+    "expected": {
+      "isError": true,
+      "payload": null,
+      "messageContains": "genre_id"
+    }
+  },
+  {
+    "name": "wrong type for from_account_id",
+    "arguments": {
+      "amount": 1250.5,
+      "date": "2026-10-01",
+      "category_id": 101,
+      "genre_id": 201,
+      "from_account_id": "invalid"
+    },
+    "credentialsPresent": true,
+    "apiRequest": null,
+    "apiResponse": null,
+    "expected": {
+      "isError": true,
+      "payload": null,
+      "messageContains": "from_account_id"
+    }
+  },
+  {
+    "name": "wrong type for place",
+    "arguments": {
+      "amount": 1250.5,
+      "date": "2026-10-01",
+      "category_id": 101,
+      "genre_id": 201,
+      "place": 99
+    },
+    "credentialsPresent": true,
+    "apiRequest": null,
+    "apiResponse": null,
+    "expected": {
+      "isError": true,
+      "payload": null,
+      "messageContains": "place"
+    }
+  },
+  {
+    "name": "wrong type for comment",
+    "arguments": {
+      "amount": 1250.5,
+      "date": "2026-10-01",
+      "category_id": 101,
+      "genre_id": 201,
+      "comment": 99
+    },
+    "credentialsPresent": true,
+    "apiRequest": null,
+    "apiResponse": null,
+    "expected": {
+      "isError": true,
+      "payload": null,
+      "messageContains": "comment"
+    }
+  },
+  {
+    "name": "wrong type for name",
+    "arguments": {
+      "amount": 1250.5,
+      "date": "2026-10-01",
+      "category_id": 101,
+      "genre_id": 201,
+      "name": 99
+    },
+    "credentialsPresent": true,
+    "apiRequest": null,
+    "apiResponse": null,
+    "expected": {
+      "isError": true,
+      "payload": null,
+      "messageContains": "name"
+    }
+  },
+  {
+    "name": "zero amount",
+    "arguments": {
+      "amount": 0,
+      "date": "2026-10-01",
+      "category_id": 101,
+      "genre_id": 201
+    },
+    "credentialsPresent": true,
+    "apiRequest": null,
+    "apiResponse": null,
+    "expected": {
+      "isError": true,
+      "payload": null,
+      "messageContains": "amount"
+    }
+  },
+  {
+    "name": "negative amount",
+    "arguments": {
+      "amount": -1,
+      "date": "2026-10-01",
+      "category_id": 101,
+      "genre_id": 201
+    },
+    "credentialsPresent": true,
+    "apiRequest": null,
+    "apiResponse": null,
+    "expected": {
+      "isError": true,
+      "payload": null,
+      "messageContains": "amount"
+    }
+  },
+  {
+    "name": "money array response",
+    "arguments": {
+      "amount": 1250.5,
+      "date": "2026-10-01",
+      "category_id": 101,
+      "genre_id": 201
+    },
+    "credentialsPresent": true,
+    "apiRequest": {
+      "method": "POST",
+      "path": "/v2/home/money/payment",
+      "query": {},
+      "form": {
+        "mapping": "1",
+        "amount": "1250.5",
+        "date": "2026-10-01",
+        "category_id": "101",
+        "genre_id": "201"
+      }
+    },
+    "apiResponse": {
+      "status": 200,
+      "body": "{\"money\":[{\"id\":42,\"mode\":\"payment\",\"date\":\"2026-10-01\",\"amount\":1250.5,\"category_id\":101,\"genre_id\":201,\"account_id\":3,\"currency_code\":\"EUR\",\"comment\":\"昼食 & coffee\",\"extra_api_field\":{\"kept\":true}}]}"
+    },
+    "expected": {
+      "isError": false,
+      "payload": {
+        "record": {
+          "id": 42,
+          "mode": "payment",
+          "date": "2026-10-01",
+          "amount": 1250.5,
+          "category_id": 101,
+          "genre_id": 201,
+          "account_id": 3,
+          "currency_code": "EUR",
+          "comment": "昼食 & coffee",
+          "extra_api_field": {
+            "kept": true
+          }
+        },
+        "success": true,
+        "message": "支出記録を作成しました"
+      },
+      "messageContains": ""
+    }
+  },
+  {
+    "name": "empty money array",
+    "arguments": {
+      "amount": 1250.5,
+      "date": "2026-10-01",
+      "category_id": 101,
+      "genre_id": 201
+    },
+    "credentialsPresent": true,
+    "apiRequest": {
+      "method": "POST",
+      "path": "/v2/home/money/payment",
+      "query": {},
+      "form": {
+        "mapping": "1",
+        "amount": "1250.5",
+        "date": "2026-10-01",
+        "category_id": "101",
+        "genre_id": "201"
+      }
+    },
+    "apiResponse": {
+      "status": 200,
+      "body": "{\"money\":[]}"
+    },
+    "expected": {
+      "isError": true,
+      "payload": {
+        "record": null,
+        "success": false,
+        "message": "支出記録の作成に失敗しました: 無効なレスポンス形式"
+      },
+      "messageContains": ""
+    }
+  },
+  {
+    "name": "invalid money type",
+    "arguments": {
+      "amount": 1250.5,
+      "date": "2026-10-01",
+      "category_id": 101,
+      "genre_id": 201
+    },
+    "credentialsPresent": true,
+    "apiRequest": {
+      "method": "POST",
+      "path": "/v2/home/money/payment",
+      "query": {},
+      "form": {
+        "mapping": "1",
+        "amount": "1250.5",
+        "date": "2026-10-01",
+        "category_id": "101",
+        "genre_id": "201"
+      }
+    },
+    "apiResponse": {
+      "status": 200,
+      "body": "{\"money\":true}"
+    },
+    "expected": {
+      "isError": true,
+      "payload": {
+        "record": null,
+        "success": false,
+        "message": "支出記録の作成に失敗しました: 無効なレスポンス形式"
+      },
+      "messageContains": ""
+    }
+  },
+  {
+    "name": "optional fields",
+    "arguments": {
+      "amount": 1250.5,
+      "date": "2026-10-01",
+      "category_id": 101,
+      "genre_id": 201,
+      "from_account_id": 3,
+      "place": "メモ & 店舗",
+      "comment": "メモ & 店舗",
+      "name": "メモ & 店舗"
+    },
+    "credentialsPresent": true,
+    "apiRequest": {
+      "method": "POST",
+      "path": "/v2/home/money/payment",
+      "query": {},
+      "form": {
+        "mapping": "1",
+        "amount": "1250.5",
+        "date": "2026-10-01",
+        "category_id": "101",
+        "genre_id": "201",
+        "from_account_id": "3",
+        "place": "メモ & 店舗",
+        "comment": "メモ & 店舗",
+        "name": "メモ & 店舗"
+      }
+    },
+    "apiResponse": {
+      "status": 200,
+      "body": "{\"money\":{\"id\":42,\"mode\":\"payment\",\"date\":\"2026-10-01\",\"amount\":1250.5,\"category_id\":101,\"genre_id\":201,\"account_id\":3,\"currency_code\":\"EUR\",\"comment\":\"昼食 & coffee\",\"extra_api_field\":{\"kept\":true}}}"
+    },
+    "expected": {
+      "isError": false,
+      "payload": {
+        "record": {
+          "id": 42,
+          "mode": "payment",
+          "date": "2026-10-01",
+          "amount": 1250.5,
+          "category_id": 101,
+          "genre_id": 201,
+          "account_id": 3,
+          "currency_code": "EUR",
+          "comment": "昼食 & coffee",
+          "extra_api_field": {
+            "kept": true
+          }
+        },
+        "success": true,
+        "message": "支出記録を作成しました"
+      },
+      "messageContains": ""
+    }
+  }
+]

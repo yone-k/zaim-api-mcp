@@ -1,12 +1,10 @@
-version: '3.8'
-
 services:
-  mcp-base:
+  zaim-api:
     build: .
-    container_name: mcp-base
+    image: zaim-api-mcp
     environment:
-      - LOG_LEVEL=info
-    # Add your environment variables here
-    # - API_KEY=your_api_key_here
+      ZAIM_CONSUMER_KEY: ${ZAIM_CONSUMER_KEY:-}
+      ZAIM_CONSUMER_SECRET: ${ZAIM_CONSUMER_SECRET:-}
+      ZAIM_ACCESS_TOKEN: ${ZAIM_ACCESS_TOKEN:-}
+      ZAIM_ACCESS_TOKEN_SECRET: ${ZAIM_ACCESS_TOKEN_SECRET:-}
     stdin_open: true
-    tty: true

@@ -1,0 +1,579 @@
+[
+  {
+    "name": "success with API fields preserved",
+    "arguments": {},
+    "credentialsPresent": true,
+    "apiRequest": {
+      "method": "GET",
+      "path": "/v2/home/money",
+      "query": {
+        "mapping": "1",
+        "limit": "20",
+        "page": "1"
+      },
+      "form": {}
+    },
+    "apiResponse": {
+      "status": 200,
+      "body": "{\"money\":[{\"id\":42,\"mode\":\"payment\",\"date\":\"2026-10-01\",\"amount\":1250.5,\"category_id\":101,\"genre_id\":201,\"account_id\":3,\"currency_code\":\"EUR\",\"comment\":\"昼食 & coffee\",\"extra_api_field\":{\"kept\":true}}]}"
+    },
+    "expected": {
+      "isError": false,
+      "payload": {
+        "records": [
+          {
+            "id": 42,
+            "mode": "payment",
+            "date": "2026-10-01",
+            "amount": 1250.5,
+            "category_id": 101,
+            "genre_id": 201,
+            "account_id": 3,
+            "currency_code": "EUR",
+            "comment": "昼食 & coffee",
+            "extra_api_field": {
+              "kept": true
+            }
+          }
+        ],
+        "count": 1,
+        "success": true,
+        "message": "1件の記録を取得しました"
+      },
+      "messageContains": ""
+    }
+  },
+  {
+    "name": "missing credentials",
+    "arguments": {},
+    "credentialsPresent": false,
+    "apiRequest": null,
+    "apiResponse": null,
+    "expected": {
+      "isError": true,
+      "payload": {
+        "records": [],
+        "count": 0,
+        "success": false,
+        "message": "記録の取得に失敗しました: Missing required environment variable: ZAIM_CONSUMER_KEY"
+      },
+      "messageContains": ""
+    }
+  },
+  {
+    "name": "HTTP failure",
+    "arguments": {},
+    "credentialsPresent": true,
+    "apiRequest": {
+      "method": "GET",
+      "path": "/v2/home/money",
+      "query": {
+        "mapping": "1",
+        "limit": "20",
+        "page": "1"
+      },
+      "form": {}
+    },
+    "apiResponse": {
+      "status": 401,
+      "body": "{\"message\":\"denied\"}"
+    },
+    "expected": {
+      "isError": true,
+      "payload": {
+        "records": [],
+        "count": 0,
+        "success": false,
+        "message": "記録の取得に失敗しました: Zaim API Error: 401 - denied"
+      },
+      "messageContains": ""
+    }
+  },
+  {
+    "name": "invalid JSON response",
+    "arguments": {},
+    "credentialsPresent": true,
+    "apiRequest": {
+      "method": "GET",
+      "path": "/v2/home/money",
+      "query": {
+        "mapping": "1",
+        "limit": "20",
+        "page": "1"
+      },
+      "form": {}
+    },
+    "apiResponse": {
+      "status": 200,
+      "body": "{"
+    },
+    "expected": {
+      "isError": true,
+      "payload": {
+        "records": [],
+        "count": 0,
+        "success": false,
+        "message": "記録の取得に失敗しました: 無効なレスポンス形式"
+      },
+      "messageContains": ""
+    }
+  },
+  {
+    "name": "missing API response fields",
+    "arguments": {},
+    "credentialsPresent": true,
+    "apiRequest": {
+      "method": "GET",
+      "path": "/v2/home/money",
+      "query": {
+        "mapping": "1",
+        "limit": "20",
+        "page": "1"
+      },
+      "form": {}
+    },
+    "apiResponse": {
+      "status": 200,
+      "body": "{}"
+    },
+    "expected": {
+      "isError": true,
+      "payload": {
+        "records": [],
+        "count": 0,
+        "success": false,
+        "message": "記録の取得に失敗しました: 無効なレスポンス形式"
+      },
+      "messageContains": ""
+    }
+  },
+  {
+    "name": "unknown argument",
+    "arguments": {
+      "extra": true
+    },
+    "credentialsPresent": true,
+    "apiRequest": null,
+    "apiResponse": null,
+    "expected": {
+      "isError": true,
+      "payload": null,
+      "messageContains": "extra"
+    }
+  },
+  {
+    "name": "wrong type for mode",
+    "arguments": {
+      "mode": 99
+    },
+    "credentialsPresent": true,
+    "apiRequest": null,
+    "apiResponse": null,
+    "expected": {
+      "isError": true,
+      "payload": null,
+      "messageContains": "mode"
+    }
+  },
+  {
+    "name": "wrong type for start_date",
+    "arguments": {
+      "start_date": 99
+    },
+    "credentialsPresent": true,
+    "apiRequest": null,
+    "apiResponse": null,
+    "expected": {
+      "isError": true,
+      "payload": null,
+      "messageContains": "start_date"
+    }
+  },
+  {
+    "name": "wrong type for end_date",
+    "arguments": {
+      "end_date": 99
+    },
+    "credentialsPresent": true,
+    "apiRequest": null,
+    "apiResponse": null,
+    "expected": {
+      "isError": true,
+      "payload": null,
+      "messageContains": "end_date"
+    }
+  },
+  {
+    "name": "wrong type for category_id",
+    "arguments": {
+      "category_id": "invalid"
+    },
+    "credentialsPresent": true,
+    "apiRequest": null,
+    "apiResponse": null,
+    "expected": {
+      "isError": true,
+      "payload": null,
+      "messageContains": "category_id"
+    }
+  },
+  {
+    "name": "wrong type for limit",
+    "arguments": {
+      "limit": "invalid"
+    },
+    "credentialsPresent": true,
+    "apiRequest": null,
+    "apiResponse": null,
+    "expected": {
+      "isError": true,
+      "payload": null,
+      "messageContains": "limit"
+    }
+  },
+  {
+    "name": "wrong type for page",
+    "arguments": {
+      "page": "invalid"
+    },
+    "credentialsPresent": true,
+    "apiRequest": null,
+    "apiResponse": null,
+    "expected": {
+      "isError": true,
+      "payload": null,
+      "messageContains": "page"
+    }
+  },
+  {
+    "name": "invalid mode",
+    "arguments": {
+      "mode": "invalid"
+    },
+    "credentialsPresent": true,
+    "apiRequest": null,
+    "apiResponse": null,
+    "expected": {
+      "isError": true,
+      "payload": null,
+      "messageContains": "mode"
+    }
+  },
+  {
+    "name": "empty list",
+    "arguments": {},
+    "credentialsPresent": true,
+    "apiRequest": {
+      "method": "GET",
+      "path": "/v2/home/money",
+      "query": {
+        "mapping": "1",
+        "limit": "20",
+        "page": "1"
+      },
+      "form": {}
+    },
+    "apiResponse": {
+      "status": 200,
+      "body": "{\"money\":[]}"
+    },
+    "expected": {
+      "isError": false,
+      "payload": {
+        "records": [],
+        "count": 0,
+        "success": true,
+        "message": "0件の記録を取得しました"
+      },
+      "messageContains": ""
+    }
+  },
+  {
+    "name": "should fetch money records without filters",
+    "arguments": {},
+    "credentialsPresent": true,
+    "apiRequest": {
+      "method": "GET",
+      "path": "/v2/home/money",
+      "query": {
+        "mapping": "1",
+        "limit": "20",
+        "page": "1"
+      },
+      "form": {}
+    },
+    "apiResponse": {
+      "status": 200,
+      "body": "{\"money\":[{\"id\":42,\"mode\":\"payment\",\"date\":\"2026-10-01\",\"amount\":1250.5,\"category_id\":101,\"genre_id\":201,\"account_id\":3,\"currency_code\":\"EUR\",\"comment\":\"昼食 & coffee\",\"extra_api_field\":{\"kept\":true}}]}"
+    },
+    "expected": {
+      "isError": false,
+      "payload": {
+        "records": [
+          {
+            "id": 42,
+            "mode": "payment",
+            "date": "2026-10-01",
+            "amount": 1250.5,
+            "category_id": 101,
+            "genre_id": 201,
+            "account_id": 3,
+            "currency_code": "EUR",
+            "comment": "昼食 & coffee",
+            "extra_api_field": {
+              "kept": true
+            }
+          }
+        ],
+        "count": 1,
+        "success": true,
+        "message": "1件の記録を取得しました"
+      },
+      "messageContains": ""
+    }
+  },
+  {
+    "name": "should apply date filters correctly",
+    "arguments": {
+      "start_date": "2024-01-01",
+      "end_date": "2024-01-31"
+    },
+    "credentialsPresent": true,
+    "apiRequest": {
+      "method": "GET",
+      "path": "/v2/home/money",
+      "query": {
+        "mapping": "1",
+        "start_date": "2024-01-01",
+        "end_date": "2024-01-31",
+        "limit": "20",
+        "page": "1"
+      },
+      "form": {}
+    },
+    "apiResponse": {
+      "status": 200,
+      "body": "{\"money\":[{\"id\":42,\"mode\":\"payment\",\"date\":\"2026-10-01\",\"amount\":1250.5,\"category_id\":101,\"genre_id\":201,\"account_id\":3,\"currency_code\":\"EUR\",\"comment\":\"昼食 & coffee\",\"extra_api_field\":{\"kept\":true}}]}"
+    },
+    "expected": {
+      "isError": false,
+      "payload": {
+        "records": [
+          {
+            "id": 42,
+            "mode": "payment",
+            "date": "2026-10-01",
+            "amount": 1250.5,
+            "category_id": 101,
+            "genre_id": 201,
+            "account_id": 3,
+            "currency_code": "EUR",
+            "comment": "昼食 & coffee",
+            "extra_api_field": {
+              "kept": true
+            }
+          }
+        ],
+        "count": 1,
+        "success": true,
+        "message": "1件の記録を取得しました"
+      },
+      "messageContains": ""
+    }
+  },
+  {
+    "name": "should filter by mode (payment/income/transfer)",
+    "arguments": {
+      "mode": "payment"
+    },
+    "credentialsPresent": true,
+    "apiRequest": {
+      "method": "GET",
+      "path": "/v2/home/money",
+      "query": {
+        "mapping": "1",
+        "mode": "payment",
+        "limit": "20",
+        "page": "1"
+      },
+      "form": {}
+    },
+    "apiResponse": {
+      "status": 200,
+      "body": "{\"money\":[{\"id\":42,\"mode\":\"payment\",\"date\":\"2026-10-01\",\"amount\":1250.5,\"category_id\":101,\"genre_id\":201,\"account_id\":3,\"currency_code\":\"EUR\",\"comment\":\"昼食 & coffee\",\"extra_api_field\":{\"kept\":true}}]}"
+    },
+    "expected": {
+      "isError": false,
+      "payload": {
+        "records": [
+          {
+            "id": 42,
+            "mode": "payment",
+            "date": "2026-10-01",
+            "amount": 1250.5,
+            "category_id": 101,
+            "genre_id": 201,
+            "account_id": 3,
+            "currency_code": "EUR",
+            "comment": "昼食 & coffee",
+            "extra_api_field": {
+              "kept": true
+            }
+          }
+        ],
+        "count": 1,
+        "success": true,
+        "message": "1件の記録を取得しました"
+      },
+      "messageContains": ""
+    }
+  },
+  {
+    "name": "should handle pagination parameters",
+    "arguments": {
+      "limit": 20,
+      "page": 2
+    },
+    "credentialsPresent": true,
+    "apiRequest": {
+      "method": "GET",
+      "path": "/v2/home/money",
+      "query": {
+        "mapping": "1",
+        "limit": "20",
+        "page": "2"
+      },
+      "form": {}
+    },
+    "apiResponse": {
+      "status": 200,
+      "body": "{\"money\":[{\"id\":42,\"mode\":\"payment\",\"date\":\"2026-10-01\",\"amount\":1250.5,\"category_id\":101,\"genre_id\":201,\"account_id\":3,\"currency_code\":\"EUR\",\"comment\":\"昼食 & coffee\",\"extra_api_field\":{\"kept\":true}}]}"
+    },
+    "expected": {
+      "isError": false,
+      "payload": {
+        "records": [
+          {
+            "id": 42,
+            "mode": "payment",
+            "date": "2026-10-01",
+            "amount": 1250.5,
+            "category_id": 101,
+            "genre_id": 201,
+            "account_id": 3,
+            "currency_code": "EUR",
+            "comment": "昼食 & coffee",
+            "extra_api_field": {
+              "kept": true
+            }
+          }
+        ],
+        "count": 1,
+        "success": true,
+        "message": "1件の記録を取得しました"
+      },
+      "messageContains": ""
+    }
+  },
+  {
+    "name": "should filter by category_id",
+    "arguments": {
+      "category_id": 101
+    },
+    "credentialsPresent": true,
+    "apiRequest": {
+      "method": "GET",
+      "path": "/v2/home/money",
+      "query": {
+        "mapping": "1",
+        "category_id": "101",
+        "limit": "20",
+        "page": "1"
+      },
+      "form": {}
+    },
+    "apiResponse": {
+      "status": 200,
+      "body": "{\"money\":[{\"id\":42,\"mode\":\"payment\",\"date\":\"2026-10-01\",\"amount\":1250.5,\"category_id\":101,\"genre_id\":201,\"account_id\":3,\"currency_code\":\"EUR\",\"comment\":\"昼食 & coffee\",\"extra_api_field\":{\"kept\":true}}]}"
+    },
+    "expected": {
+      "isError": false,
+      "payload": {
+        "records": [
+          {
+            "id": 42,
+            "mode": "payment",
+            "date": "2026-10-01",
+            "amount": 1250.5,
+            "category_id": 101,
+            "genre_id": 201,
+            "account_id": 3,
+            "currency_code": "EUR",
+            "comment": "昼食 & coffee",
+            "extra_api_field": {
+              "kept": true
+            }
+          }
+        ],
+        "count": 1,
+        "success": true,
+        "message": "1件の記録を取得しました"
+      },
+      "messageContains": ""
+    }
+  },
+  {
+    "name": "should handle multiple filters combined",
+    "arguments": {
+      "mode": "payment",
+      "start_date": "2024-01-01",
+      "end_date": "2024-01-31",
+      "category_id": 101,
+      "limit": 10
+    },
+    "credentialsPresent": true,
+    "apiRequest": {
+      "method": "GET",
+      "path": "/v2/home/money",
+      "query": {
+        "mapping": "1",
+        "mode": "payment",
+        "start_date": "2024-01-01",
+        "end_date": "2024-01-31",
+        "category_id": "101",
+        "limit": "10",
+        "page": "1"
+      },
+      "form": {}
+    },
+    "apiResponse": {
+      "status": 200,
+      "body": "{\"money\":[{\"id\":42,\"mode\":\"payment\",\"date\":\"2026-10-01\",\"amount\":1250.5,\"category_id\":101,\"genre_id\":201,\"account_id\":3,\"currency_code\":\"EUR\",\"comment\":\"昼食 & coffee\",\"extra_api_field\":{\"kept\":true}}]}"
+    },
+    "expected": {
+      "isError": false,
+      "payload": {
+        "records": [
+          {
+            "id": 42,
+            "mode": "payment",
+            "date": "2026-10-01",
+            "amount": 1250.5,
+            "category_id": 101,
+            "genre_id": 201,
+            "account_id": 3,
+            "currency_code": "EUR",
+            "comment": "昼食 & coffee",
+            "extra_api_field": {
+              "kept": true
+            }
+          }
+        ],
+        "count": 1,
+        "success": true,
+        "message": "1件の記録を取得しました"
+      },
+      "messageContains": ""
+    }
+  }
+]
