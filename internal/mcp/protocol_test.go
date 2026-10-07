@@ -161,8 +161,8 @@ func checkToolDefinitions(t *testing.T, result map[string]json.RawMessage) {
 		if tool.OutputSchema["type"] != "object" {
 			t.Errorf("missing outputSchema: %s", old.Name)
 		}
-		readOnly := !strings.Contains(old.Name, "create_") && old.Name != "zaim_update_money_record" && old.Name != "zaim_delete_money_record"
-		destructive := old.Name == "zaim_update_money_record" || old.Name == "zaim_delete_money_record"
+		readOnly := !strings.Contains(old.Name, "create_") && !strings.Contains(old.Name, "update_") && old.Name != "zaim_delete_money_record"
+		destructive := strings.Contains(old.Name, "update_") || old.Name == "zaim_delete_money_record"
 		if tool.Annotations == nil || tool.Annotations.ReadOnlyHint != readOnly || tool.Annotations.DestructiveHint == nil || *tool.Annotations.DestructiveHint != destructive || tool.Annotations.OpenWorldHint == nil || !*tool.Annotations.OpenWorldHint {
 			t.Errorf("wrong annotations: %s: %+v", old.Name, tool.Annotations)
 		}

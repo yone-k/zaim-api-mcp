@@ -6,7 +6,7 @@ Zaimの家計簿データを取得・作成・更新・削除する、Go製のMC
 
 ## 特徴
 
-- 認証・ユーザー情報、家計簿、マスターデータを扱う14ツール
+- 認証・ユーザー情報、家計簿、マスターデータを扱う18ツール
 - 公式Go MCP SDK v1.8.0と、[zaim-cli](https://github.com/yone-k/zaim-cli) v0.3.0のSDKを使用
 - MCP 2026-07-28、2025-11-25、2025-06-18、2025-03-26、2024-11-05に対応
 - JSON Schemaで入力・出力を検証し、結果を`structuredContent`とJSONテキストで返却
@@ -124,6 +124,10 @@ Dockerを使う場合の設定例です。
 | 家計簿 | `zaim_create_transfer` | 振替の作成 |
 | 家計簿 | `zaim_update_money_record` | 記録の更新 |
 | 家計簿 | `zaim_delete_money_record` | 記録の削除 |
+| 家計簿 | `zaim_bulk_create_payments` | 支出の一括作成（最大100件） |
+| 家計簿 | `zaim_bulk_create_incomes` | 収入の一括作成（最大100件） |
+| 家計簿 | `zaim_bulk_create_transfers` | 振替の一括作成（最大100件） |
+| 家計簿 | `zaim_bulk_update_money_records` | 記録の一括更新（最大100件） |
 | マスター | `zaim_get_user_categories` | ユーザーカテゴリ一覧 |
 | マスター | `zaim_get_user_genres` | ユーザージャンル一覧 |
 | マスター | `zaim_get_user_accounts` | 口座一覧 |
@@ -137,6 +141,7 @@ Dockerを使う場合の設定例です。
 - 作成・更新の`amount`は正数です。
 - 支出の更新には`genre_id`が必要です。
 - 入力検証・認証・API処理に失敗した場合は`isError=true`を返します。
+- 一括処理は`items`の各要素を単体ツールと同じ引数で受け取り、順番に1回ずつ送信します。失敗した要素があっても残りを続け、要素ごとの結果を返します。`isError=true`になるのは、全件が失敗した場合です。`dry_run=true`ではAPIを呼ばずに検証のみ行います。
 
 ### 対応プロトコル
 
@@ -150,7 +155,7 @@ go vet ./...
 go build -o dist/zaim-api-mcp ./cmd/zaim-api-mcp
 ```
 
-14ツールの入力と期待する結果を収録した、199件のテストデータで互換性を検証します。API応答にはダミーHTTPサーバーを使います。
+単体操作の14ツールの入力と期待する結果を収録した、199件のテストデータで互換性を検証します。API応答にはダミーHTTPサーバーを使います。
 
 プロトコルテストでは実バイナリを起動し、新旧仕様での接続、stdoutとstderrの分離、EOF・SIGINT・SIGTERMによる終了を確認します。キャンセルがHTTP通信まで伝わることも検証します。
 
@@ -171,7 +176,7 @@ PR作成・更新時とmainへの更新時には、GitHub Actionsでコードの
 cmd/zaim-api-mcp/       起動・終了処理
 internal/config/       環境変数と認証情報の伏字
 internal/mcp/          MCPサーバーと契約・プロトコルテスト
-internal/mcp/tools/    14ツール、入出力スキーマ、応答変換
+internal/mcp/tools/    18ツール、入出力スキーマ、応答変換
 internal/version/      サーバーバージョン
 testdata/              互換性検証用のテストデータと既存ツール定義
 ```

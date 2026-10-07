@@ -9,10 +9,10 @@ MCPの処理には公式`github.com/modelcontextprotocol/go-sdk v1.8.0`、Zaim�
 - `cmd/zaim-api-mcp/main.go`: 起動、stderrログ、EOF・シグナルによる終了。
 - `internal/config/`: 4つのZaim環境変数の検証と、認証情報の伏字。
 - `internal/mcp/server.go`: サーバー情報、対応プロトコル、キャッシュ情報、SDKクライアントの注入。
-- `internal/mcp/tools/definitions.json`: 14ツールの名前・説明・入力スキーマ。
+- `internal/mcp/tools/definitions.json`: 18ツールの名前・説明・入力スキーマ。
 - `internal/mcp/tools/registry.go`: 入出力検証、構造化出力とJSONテキスト、annotations。
-- `internal/mcp/tools/operations.go`: 認証・ユーザー情報2ツール、家計簿6ツール、マスター6ツールの引数とAPI結果の変換。
-- `testdata/contracts/`: 14ツールの入力と期待する結果を収録した199件のテストデータ。
+- `internal/mcp/tools/operations.go`: 認証・ユーザー情報2ツール、家計簿6ツール、一括処理4ツール、マスター6ツールの引数とAPI結果の変換。一括処理は単体ツールの変換を要素ごとに再利用する。
+- `testdata/contracts/`: 単体操作の14ツールの入力と期待する結果を収録した199件のテストデータ。一括処理4ツールは`internal/mcp/bulk_test.go`で検証する。
 
 ## コマンド
 

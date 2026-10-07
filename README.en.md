@@ -6,7 +6,7 @@ A Go MCP server for reading, creating, updating, and deleting Zaim household rec
 
 ## Features
 
-- 14 tools for authentication, user information, household records, and master data
+- 18 tools for authentication, user information, household records, and master data
 - Official Go MCP SDK v1.8.0 and the SDK included in [zaim-cli](https://github.com/yone-k/zaim-cli) v0.3.0
 - MCP 2026-07-28, 2025-11-25, 2025-06-18, 2025-03-26, and 2024-11-05
 - JSON Schema validation, structured output, and JSON text responses
@@ -124,6 +124,10 @@ For Docker, use this configuration:
 | Records | `zaim_create_transfer` | Create a transfer |
 | Records | `zaim_update_money_record` | Update a record |
 | Records | `zaim_delete_money_record` | Delete a record |
+| Records | `zaim_bulk_create_payments` | Create up to 100 payments |
+| Records | `zaim_bulk_create_incomes` | Create up to 100 income records |
+| Records | `zaim_bulk_create_transfers` | Create up to 100 transfers |
+| Records | `zaim_bulk_update_money_records` | Update up to 100 records |
 | Master data | `zaim_get_user_categories` | List user categories |
 | Master data | `zaim_get_user_genres` | List user genres |
 | Master data | `zaim_get_user_accounts` | List accounts |
@@ -137,6 +141,7 @@ Tool names, arguments, defaults, and successful JSON payloads remain compatible 
 - Creation and update amounts must be positive.
 - Updating a payment requires `genre_id`.
 - Input validation, authentication, and API failures return `isError=true`.
+- Bulk tools take `items` with the same arguments as the single-record tools and send each item once, in order. They continue after a failed item and return per-item results. They return `isError=true` only when every item fails. With `dry_run=true`, they validate without calling the API.
 
 ### Supported protocols
 
@@ -150,7 +155,7 @@ go vet ./...
 go build -o dist/zaim-api-mcp ./cmd/zaim-api-mcp
 ```
 
-The 199 contract cases cover inputs and expected results for all 14 tools. Mock HTTP servers provide the API responses.
+The 199 contract cases cover inputs and expected results for the 14 single-operation tools. Mock HTTP servers provide the API responses.
 
 Protocol tests start the actual binary and check connections across supported versions, stdout/stderr separation, and shutdown on EOF, SIGINT, or SIGTERM. Tests also verify that cancellation reaches the HTTP request.
 
