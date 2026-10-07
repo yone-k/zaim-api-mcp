@@ -16,11 +16,13 @@ func TestBulkStopsSendingAfterCancellation(t *testing.T) {
 	ctx, cancel := context.WithCancel(t.Context())
 	defer cancel()
 	var calls atomic.Int32
-	api := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, _ *http.Request) {
+	api := httptest.NewServer(http.HandlerFunc(func(_ http.ResponseWriter, r *http.Request) {
 		calls.Add(1)
+		// The server notices the client disconnecting only after the request body has been read.
+		_ = r.ParseForm()
 		cancel()
-		w.Header().Set("Content-Type", "application/json")
-		_, _ = w.Write([]byte(`{"money":{"id":1}}`))
+		// Responding here would race the client's cancellation and could record the item as created.
+		<-r.Context().Done()
 	}))
 	defer api.Close()
 	provider := func() (*zaim.Client, error) {

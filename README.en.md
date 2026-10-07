@@ -2,7 +2,7 @@
 
 [日本語 README](README.md)
 
-A Go MCP server for reading, creating, updating, and deleting Zaim household records. It communicates with MCP clients over stdio and authenticates with Zaim using OAuth 1.0a.
+A Go MCP server for reading, creating, updating, and deleting Zaim household records. It communicates with MCP clients over stdio and signs Zaim API requests with OAuth 1.0a.
 
 ## Features
 
@@ -16,17 +16,6 @@ A Go MCP server for reading, creating, updating, and deleting Zaim household rec
 ## Requirements
 
 Building from source requires Go 1.26.2 or later. Running the container requires Docker.
-
-Set your Zaim credentials in these four environment variables:
-
-```bash
-export ZAIM_CONSUMER_KEY=your_consumer_key
-export ZAIM_CONSUMER_SECRET=your_consumer_secret
-export ZAIM_ACCESS_TOKEN=your_access_token
-export ZAIM_ACCESS_TOKEN_SECRET=your_access_token_secret
-```
-
-Credentials are checked when a tool runs. The server can start and list tools without them.
 
 ## Installation and startup
 
@@ -66,9 +55,83 @@ docker compose build
 docker compose run --rm -T zaim-api
 ```
 
+To use credentials saved by `auth login` in Docker, see [Use saved credentials in Docker](#use-saved-credentials-in-docker).
+
+## Authentication
+
+Zaim API requests are signed with OAuth 1.0a, which needs these four values:
+
+| Value | How to get it |
+|---|---|
+| Consumer Key and Consumer Secret | Register an application at [Zaim Developers](https://dev.zaim.net/) |
+| Access Token and Access Token Secret | Run `auth login` and allow access in the browser |
+
+Save the four values to a file with `auth login`, or pass them as environment variables. The server chooses credentials as follows:
+
+- If all four environment variables are set, it uses them.
+- If none of them is set, it uses the file saved by `auth login`.
+- If only some are set, it reports an error instead of combining them with the saved file.
+
+Credentials are checked when a tool runs, so the server can start and list tools without them.
+
+### Save them with `auth login`
+
+If you installed the binary with `go install`, run the following command. If you built it into `dist/`, run `./dist/zaim-api-mcp auth login` instead.
+
+```bash
+zaim-api-mcp auth login
+```
+
+1. Enter the Consumer Key and Consumer Secret. If `ZAIM_CONSUMER_KEY` and `ZAIM_CONSUMER_SECRET` are set, the command does not prompt for them.
+2. Allow access on the Zaim authorization page that opens in your browser. If no browser opens, open the printed URL yourself.
+3. The command gets the access token and saves the four values to a file.
+
+The file is saved to `~/.config/zaim-api-mcp/credentials.json`. If `XDG_CONFIG_HOME` is set, it is saved to `$XDG_CONFIG_HOME/zaim-api-mcp/credentials.json` instead. Only your user can read or write the file (mode 0600).
+
+The authorization callback is received at `http://localhost:8080/callback`. Use `--port` to change the port. The command stops if access is not allowed within five minutes.
+
+When you use the saved credentials, your MCP client configuration does not need `env`. If you previously used environment variables, remove all four `ZAIM_*` variables from your MCP client configuration. If all four remain, the server uses them; if only some remain, it reports an error.
+
+### Pass them as environment variables
+
+If you already have the access token and secret from another source, pass the four values as environment variables:
+
+```bash
+export ZAIM_CONSUMER_KEY=your_consumer_key
+export ZAIM_CONSUMER_SECRET=your_consumer_secret
+export ZAIM_ACCESS_TOKEN=your_access_token
+export ZAIM_ACCESS_TOKEN_SECRET=your_access_token_secret
+```
+
+### Use saved credentials in Docker
+
+Run `auth login` on the host and mount the credentials directory read-only. Set `--user` to your host user ID so the container can read the file:
+
+```bash
+docker run --rm -i \
+  --user "$(id -u):$(id -g)" \
+  -e XDG_CONFIG_HOME=/config \
+  -v "$HOME/.config/zaim-api-mcp:/config/zaim-api-mcp:ro" \
+  zaim-api-mcp
+```
+
 ## MCP client configuration
 
-Keep the existing server name `zaim-api` and set `command` to the absolute path of the Go binary:
+Keep the existing server name `zaim-api` and set `command` to the absolute path of the Go binary.
+
+If you saved credentials with `auth login`:
+
+```json
+{
+  "mcpServers": {
+    "zaim-api": {
+      "command": "/absolute/path/to/zaim-api-mcp/dist/zaim-api-mcp"
+    }
+  }
+}
+```
+
+To pass credentials as environment variables:
 
 ```json
 {
@@ -166,15 +229,16 @@ docker build -t zaim-api-mcp .
 ZAIM_MCP_TEST_IMAGE=zaim-api-mcp go test ./internal/mcp -run TestStdioServer -count=1
 ```
 
-Tests do not access the real Zaim API.
+Tests do not access the real Zaim API. Binary checks clear the credential variables. When they start the local binary, they also point `HOME` and `XDG_CONFIG_HOME` at temporary directories so saved credentials are not read.
 
 On pull requests and updates to main, GitHub Actions checks formatting, runs vet and tests with the race detector, and builds the binary. It also checks Docker connections across supported protocol versions and container shutdown.
 
 ### Directory structure
 
 ```text
-cmd/zaim-api-mcp/       Startup and shutdown
-internal/config/       Environment configuration and credential redaction
+cmd/zaim-api-mcp/       Startup, shutdown, and auth subcommand dispatch
+internal/auth/         Authorization flow for auth login
+internal/config/       Credential loading from environment or saved file, saving, and redaction
 internal/mcp/          Server, contract tests, and protocol tests
 internal/mcp/tools/    Tools, schemas, and response conversion
 internal/version/      Server version
