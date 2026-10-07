@@ -7,7 +7,7 @@ A Go MCP server for reading, creating, updating, and deleting Zaim household rec
 ## Features
 
 - 18 tools for authentication, user information, household records, and master data
-- Official Go MCP SDK v1.8.0 and the SDK included in [zaim-cli](https://github.com/yone-k/zaim-cli) v0.3.0
+- Official Go MCP SDK v1.8.0 and [go-zaim](https://github.com/yone-k/go-zaim) v0.1.0, a Go SDK for the Zaim API
 - MCP 2026-07-28, 2025-11-25, 2025-06-18, 2025-03-26, and 2024-11-05
 - JSON Schema validation, structured output, and JSON text responses
 - Preservation of fractional amounts and additional API fields

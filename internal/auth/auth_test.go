@@ -10,7 +10,7 @@ import (
 	"testing"
 	"time"
 
-	"github.com/yone-k/zaim-cli/pkg/zaim"
+	"github.com/yone-k/go-zaim"
 )
 
 type fakeZaim struct {

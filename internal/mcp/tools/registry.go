@@ -10,8 +10,8 @@ import (
 
 	"github.com/google/jsonschema-go/jsonschema"
 	"github.com/modelcontextprotocol/go-sdk/mcp"
+	"github.com/yone-k/go-zaim"
 	"github.com/yone-k/zaim-api-mcp/internal/config"
-	"github.com/yone-k/zaim-cli/pkg/zaim"
 )
 
 // ClientProvider supplies the credential-validated API client for a tool call.

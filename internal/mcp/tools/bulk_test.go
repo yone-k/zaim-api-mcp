@@ -9,7 +9,7 @@ import (
 	"sync/atomic"
 	"testing"
 
-	"github.com/yone-k/zaim-cli/pkg/zaim"
+	"github.com/yone-k/go-zaim"
 )
 
 func TestBulkStopsSendingAfterCancellation(t *testing.T) {
