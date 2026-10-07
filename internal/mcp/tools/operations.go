@@ -3,6 +3,7 @@ package tools
 import (
 	"context"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"net/http"
 	"strconv"
@@ -34,6 +35,30 @@ type deleteResult struct {
 	Message string          `json:"message"`
 }
 
+type bulkItemResult struct {
+	Index   int             `json:"index"`
+	Success bool            `json:"success"`
+	Message string          `json:"message"`
+	Record  json.RawMessage `json:"record"`
+}
+
+type bulkResult struct {
+	Success   bool             `json:"success"`
+	Message   string           `json:"message"`
+	DryRun    bool             `json:"dry_run"`
+	Total     int              `json:"total"`
+	Succeeded int              `json:"succeeded"`
+	Failed    int              `json:"failed"`
+	Results   []bulkItemResult `json:"results"`
+}
+
+var bulkSingleTools = map[string]string{
+	"zaim_bulk_create_payments":      "zaim_create_payment",
+	"zaim_bulk_create_incomes":       "zaim_create_income",
+	"zaim_bulk_create_transfers":     "zaim_create_transfer",
+	"zaim_bulk_update_money_records": "zaim_update_money_record",
+}
+
 type operation struct{ path, key, label string }
 
 func listOperation(name string) operation {
@@ -63,6 +88,8 @@ func execute(ctx context.Context, provider ClientProvider, name string, args Arg
 		return executeUser(ctx, provider, name)
 	case "zaim_create_payment", "zaim_create_income", "zaim_create_transfer", "zaim_update_money_record", "zaim_delete_money_record":
 		return executeRecord(ctx, provider, name, args)
+	case "zaim_bulk_create_payments", "zaim_bulk_create_incomes", "zaim_bulk_create_transfers", "zaim_bulk_update_money_records":
+		return executeBulk(ctx, provider, name, args)
 	default:
 		return executeList(ctx, provider, name, args)
 	}
@@ -133,6 +160,14 @@ func executeList(ctx context.Context, provider ClientProvider, name string, args
 }
 
 func executeRecord(ctx context.Context, provider ClientProvider, name string, args Arguments) (any, bool) {
+	result := executeRecordResult(ctx, provider, name, args)
+	if name == "zaim_delete_money_record" {
+		return deleteResult(result), !result.Success
+	}
+	return result, !result.Success
+}
+
+func executeRecordResult(ctx context.Context, provider ClientProvider, name string, args Arguments) recordResult {
 	method, path, successMessage, failureMessage := http.MethodPost, "", "", ""
 	params := map[string]string{"mapping": "1"}
 	for key, value := range args {
@@ -173,10 +208,52 @@ func executeRecord(ctx context.Context, provider ClientProvider, name string, ar
 			message = failureMessage + config.Redact(err.Error())
 		}
 	}
-	if name == "zaim_delete_money_record" {
-		return deleteResult{record, success, message}, !success
+	return recordResult{record, success, message}
+}
+
+func executeBulk(ctx context.Context, provider ClientProvider, name string, args Arguments) (any, bool) {
+	single := bulkSingleTools[name]
+	var items []Arguments
+	_ = json.Unmarshal(args["items"], &items)
+	var dryRun bool
+	_ = json.Unmarshal(args["dry_run"], &dryRun)
+	result := bulkResult{DryRun: dryRun, Total: len(items), Results: make([]bulkItemResult, 0, len(items))}
+	for i, item := range items {
+		entry := bulkItemResult{Index: i}
+		invalid := validateRecordArguments(single, item)
+		switch {
+		case ctx.Err() != nil:
+			entry.Message = "キャンセルされたため送信しませんでした"
+		case invalid != nil:
+			entry.Message = invalid.Error()
+		case dryRun:
+			entry.Success, entry.Message = true, "検証に成功しました"
+		default:
+			record := executeRecordResult(ctx, provider, single, item)
+			entry.Success, entry.Message, entry.Record = record.Success, record.Message, record.Record
+		}
+		if entry.Success {
+			result.Succeeded++
+		} else {
+			result.Failed++
+		}
+		result.Results = append(result.Results, entry)
 	}
-	return recordResult{record, success, message}, !success
+	result.Success = result.Failed == 0
+	verb := "処理"
+	if dryRun {
+		verb = "検証"
+	}
+	result.Message = fmt.Sprintf("%d件中%d件の%sに成功し、%d件が失敗しました", result.Total, result.Succeeded, verb, result.Failed)
+	return result, result.Succeeded == 0
+}
+
+// validateRecordArguments applies the checks that the input schema cannot express.
+func validateRecordArguments(name string, args Arguments) error {
+	if name == "zaim_update_money_record" && argumentString(args["mode"]) == "payment" && args["genre_id"] == nil {
+		return errors.New("genre_id is required when mode is payment")
+	}
+	return nil
 }
 
 func argumentString(value json.RawMessage) string {

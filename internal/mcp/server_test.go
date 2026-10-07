@@ -30,8 +30,8 @@ func TestServerListsToolsWithoutCredentials(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	if len(result.Tools) != 14 {
-		t.Fatalf("tools = %d, want 14", len(result.Tools))
+	if len(result.Tools) != 18 {
+		t.Fatalf("tools = %d, want 18", len(result.Tools))
 	}
 	if result.TTLMs != 0 || result.CacheScope != "public" {
 		t.Errorf("cache = %d/%s", result.TTLMs, result.CacheScope)
@@ -40,7 +40,7 @@ func TestServerListsToolsWithoutCredentials(t *testing.T) {
 	for _, tool := range result.Tools {
 		names = append(names, tool.Name)
 	}
-	if !slices.Contains(names, "zaim_create_payment") || !slices.Contains(names, "zaim_get_currencies") {
+	if !slices.Contains(names, "zaim_create_payment") || !slices.Contains(names, "zaim_get_currencies") || !slices.Contains(names, "zaim_bulk_update_money_records") {
 		t.Errorf("tool names = %v", names)
 	}
 }

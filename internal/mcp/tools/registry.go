@@ -53,14 +53,18 @@ func Register(server *mcp.Server, provider ClientProvider) {
 		if err != nil {
 			panic(err)
 		}
-		readOnly := def.Name != "zaim_update_money_record" && def.Name != "zaim_delete_money_record" && def.Name != "zaim_create_payment" && def.Name != "zaim_create_income" && def.Name != "zaim_create_transfer"
-		destructive := def.Name == "zaim_update_money_record" || def.Name == "zaim_delete_money_record"
+		writeTool := bulkSingleTools[def.Name]
+		if writeTool == "" {
+			writeTool = def.Name
+		}
+		destructive := writeTool == "zaim_update_money_record" || writeTool == "zaim_delete_money_record"
+		readOnly := !destructive && writeTool != "zaim_create_payment" && writeTool != "zaim_create_income" && writeTool != "zaim_create_transfer"
 		openWorld := true
 		mcp.AddTool(server, &mcp.Tool{Name: def.Name, Description: def.Description, InputSchema: def.InputSchema, OutputSchema: output,
 			Annotations: &mcp.ToolAnnotations{ReadOnlyHint: readOnly, DestructiveHint: &destructive, OpenWorldHint: &openWorld}},
 			func(ctx context.Context, _ *mcp.CallToolRequest, args Arguments) (*mcp.CallToolResult, any, error) {
-				if def.Name == "zaim_update_money_record" && argumentString(args["mode"]) == "payment" && args["genre_id"] == nil {
-					return nil, nil, errors.New("genre_id is required when mode is payment")
+				if err := validateRecordArguments(def.Name, args); err != nil {
+					return nil, nil, err
 				}
 				payload, failed := execute(ctx, provider, def.Name, args)
 				data, err := json.Marshal(payload)
@@ -94,6 +98,22 @@ func outputSchema(name string) map[string]any {
 		properties["record"] = map[string]any{"type": []string{"object", "null"}}
 	case "zaim_delete_money_record":
 		properties["deleted_record"] = map[string]any{"type": []string{"object", "null"}}
+	case "zaim_bulk_create_payments", "zaim_bulk_create_incomes", "zaim_bulk_create_transfers", "zaim_bulk_update_money_records":
+		properties["dry_run"] = map[string]any{"type": "boolean"}
+		for _, key := range []string{"total", "succeeded", "failed"} {
+			properties[key] = map[string]any{"type": "integer"}
+		}
+		properties["results"] = map[string]any{"type": "array", "items": map[string]any{
+			"type": "object",
+			"properties": map[string]any{
+				"index":   map[string]any{"type": "integer"},
+				"success": map[string]any{"type": "boolean"},
+				"message": map[string]any{"type": "string"},
+				"record":  map[string]any{"type": []string{"object", "null"}},
+			},
+			"required":             []string{"index", "message", "record", "success"},
+			"additionalProperties": false,
+		}}
 	default:
 		properties[listOperation(name).key] = map[string]any{"type": "array", "items": map[string]any{}}
 		properties["count"] = map[string]any{"type": "integer"}

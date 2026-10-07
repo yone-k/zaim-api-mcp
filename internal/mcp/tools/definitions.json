@@ -355,5 +355,275 @@
       "required": [],
       "additionalProperties": false
     }
+  },
+  {
+    "name": "zaim_bulk_create_payments",
+    "description": "Zaimに複数の支出記録を一括作成します（最大100件）。記録を順番に1回ずつ送信し、失敗した記録があっても残りを続行して、記録ごとの結果を返します。",
+    "inputSchema": {
+      "type": "object",
+      "properties": {
+        "items": {
+          "type": "array",
+          "minItems": 1,
+          "maxItems": 100,
+          "description": "作成する支出記録の配列（各要素はzaim_create_paymentと同じ引数）",
+          "items": {
+            "type": "object",
+            "properties": {
+              "amount": {
+                "type": "number",
+                "description": "金額",
+                "exclusiveMinimum": 0
+              },
+              "date": {
+                "type": "string",
+                "description": "日付（YYYY-MM-DD形式）"
+              },
+              "category_id": {
+                "type": "number",
+                "description": "カテゴリID"
+              },
+              "genre_id": {
+                "type": "number",
+                "description": "ジャンルID"
+              },
+              "from_account_id": {
+                "type": "number",
+                "description": "出金元口座ID"
+              },
+              "place": {
+                "type": "string",
+                "description": "場所・店舗名"
+              },
+              "comment": {
+                "type": "string",
+                "description": "メモ"
+              },
+              "name": {
+                "type": "string",
+                "description": "品名"
+              }
+            },
+            "required": [
+              "amount",
+              "date",
+              "category_id",
+              "genre_id"
+            ],
+            "additionalProperties": false
+          }
+        },
+        "dry_run": {
+          "type": "boolean",
+          "default": false,
+          "description": "trueの場合はAPIを呼び出さずに検証のみ行う"
+        }
+      },
+      "required": [
+        "items"
+      ],
+      "additionalProperties": false
+    }
+  },
+  {
+    "name": "zaim_bulk_create_incomes",
+    "description": "Zaimに複数の収入記録を一括作成します（最大100件）。記録を順番に1回ずつ送信し、失敗した記録があっても残りを続行して、記録ごとの結果を返します。",
+    "inputSchema": {
+      "type": "object",
+      "properties": {
+        "items": {
+          "type": "array",
+          "minItems": 1,
+          "maxItems": 100,
+          "description": "作成する収入記録の配列（各要素はzaim_create_incomeと同じ引数）",
+          "items": {
+            "type": "object",
+            "properties": {
+              "amount": {
+                "type": "number",
+                "description": "金額",
+                "exclusiveMinimum": 0
+              },
+              "date": {
+                "type": "string",
+                "description": "日付（YYYY-MM-DD形式）"
+              },
+              "category_id": {
+                "type": "number",
+                "description": "カテゴリID"
+              },
+              "to_account_id": {
+                "type": "number",
+                "description": "入金先口座ID"
+              },
+              "place": {
+                "type": "string",
+                "description": "場所・会社名"
+              },
+              "comment": {
+                "type": "string",
+                "description": "メモ"
+              }
+            },
+            "required": [
+              "amount",
+              "date",
+              "category_id"
+            ],
+            "additionalProperties": false
+          }
+        },
+        "dry_run": {
+          "type": "boolean",
+          "default": false,
+          "description": "trueの場合はAPIを呼び出さずに検証のみ行う"
+        }
+      },
+      "required": [
+        "items"
+      ],
+      "additionalProperties": false
+    }
+  },
+  {
+    "name": "zaim_bulk_create_transfers",
+    "description": "Zaimに複数の振替記録を一括作成します（最大100件）。記録を順番に1回ずつ送信し、失敗した記録があっても残りを続行して、記録ごとの結果を返します。",
+    "inputSchema": {
+      "type": "object",
+      "properties": {
+        "items": {
+          "type": "array",
+          "minItems": 1,
+          "maxItems": 100,
+          "description": "作成する振替記録の配列（各要素はzaim_create_transferと同じ引数）",
+          "items": {
+            "type": "object",
+            "properties": {
+              "amount": {
+                "type": "number",
+                "description": "金額",
+                "exclusiveMinimum": 0
+              },
+              "date": {
+                "type": "string",
+                "description": "日付（YYYY-MM-DD形式）"
+              },
+              "from_account_id": {
+                "type": "number",
+                "description": "出金元口座ID"
+              },
+              "to_account_id": {
+                "type": "number",
+                "description": "入金先口座ID"
+              },
+              "comment": {
+                "type": "string",
+                "description": "メモ"
+              }
+            },
+            "required": [
+              "amount",
+              "date",
+              "from_account_id",
+              "to_account_id"
+            ],
+            "additionalProperties": false
+          }
+        },
+        "dry_run": {
+          "type": "boolean",
+          "default": false,
+          "description": "trueの場合はAPIを呼び出さずに検証のみ行う"
+        }
+      },
+      "required": [
+        "items"
+      ],
+      "additionalProperties": false
+    }
+  },
+  {
+    "name": "zaim_bulk_update_money_records",
+    "description": "Zaimの既存の家計簿記録を一括更新します（最大100件）。記録を順番に1回ずつ送信し、失敗した記録があっても残りを続行して、記録ごとの結果を返します。",
+    "inputSchema": {
+      "type": "object",
+      "properties": {
+        "items": {
+          "type": "array",
+          "minItems": 1,
+          "maxItems": 100,
+          "description": "更新する記録の配列（各要素はzaim_update_money_recordと同じ引数。paymentモードではgenre_idが必須）",
+          "items": {
+            "type": "object",
+            "properties": {
+              "id": {
+                "type": "number",
+                "description": "更新する記録のID"
+              },
+              "mode": {
+                "type": "string",
+                "enum": [
+                  "payment",
+                  "income",
+                  "transfer"
+                ],
+                "description": "記録の種類"
+              },
+              "amount": {
+                "type": "number",
+                "description": "金額",
+                "exclusiveMinimum": 0
+              },
+              "date": {
+                "type": "string",
+                "description": "日付（YYYY-MM-DD形式）"
+              },
+              "category_id": {
+                "type": "number",
+                "description": "カテゴリID"
+              },
+              "genre_id": {
+                "type": "number",
+                "description": "ジャンルID（paymentモードの場合は必須）"
+              },
+              "from_account_id": {
+                "type": "number",
+                "description": "出金元口座ID（支出・振替の場合）"
+              },
+              "to_account_id": {
+                "type": "number",
+                "description": "入金先口座ID（収入・振替の場合）"
+              },
+              "place": {
+                "type": "string",
+                "description": "場所・店舗名"
+              },
+              "comment": {
+                "type": "string",
+                "description": "メモ"
+              },
+              "name": {
+                "type": "string",
+                "description": "品名"
+              }
+            },
+            "required": [
+              "id",
+              "mode"
+            ],
+            "additionalProperties": false
+          }
+        },
+        "dry_run": {
+          "type": "boolean",
+          "default": false,
+          "description": "trueの場合はAPIを呼び出さずに検証のみ行う"
+        }
+      },
+      "required": [
+        "items"
+      ],
+      "additionalProperties": false
+    }
   }
 ]
