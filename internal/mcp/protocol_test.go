@@ -185,7 +185,7 @@ func TestStdioServer(t *testing.T) {
 		if image != "" {
 			cmd = exec.Command("docker", "run", "--rm", "-i", "--network", "none", image)
 		}
-		cmd.Env = append(os.Environ(), "ZAIM_CONSUMER_KEY=", "ZAIM_CONSUMER_SECRET=", "ZAIM_ACCESS_TOKEN=", "ZAIM_ACCESS_TOKEN_SECRET=")
+		cmd.Env = isolatedEnv(t, image)
 		stdin, err := cmd.StdinPipe()
 		if err != nil {
 			t.Fatal(err)
@@ -304,6 +304,34 @@ func TestStdioServer(t *testing.T) {
 			finish(signal)
 		})
 	}
+	t.Run("auth usage", func(t *testing.T) {
+		cmd := exec.CommandContext(t.Context(), binary, "auth")
+		if image != "" {
+			cmd = exec.CommandContext(t.Context(), "docker", "run", "--rm", "-i", "--network", "none", image, "auth")
+		}
+		cmd.Env = isolatedEnv(t, image)
+		var stdout, stderr bytes.Buffer
+		cmd.Stdout, cmd.Stderr = &stdout, &stderr
+		err := cmd.Run()
+		var exitErr *exec.ExitError
+		if !errors.As(err, &exitErr) || exitErr.ExitCode() != 2 {
+			t.Fatalf("exit = %v, stderr: %s", err, stderr.String())
+		}
+		if stdout.Len() != 0 || !strings.Contains(stderr.String(), "zaim-api-mcp auth login") {
+			t.Errorf("stdout = %q, stderr = %q", stdout.String(), stderr.String())
+		}
+	})
+}
+
+// isolatedEnv hides both credential sources so the binary never reaches the real Zaim API.
+func isolatedEnv(t *testing.T, image string) []string {
+	t.Helper()
+	env := append(os.Environ(), "ZAIM_CONSUMER_KEY=", "ZAIM_CONSUMER_SECRET=", "ZAIM_ACCESS_TOKEN=", "ZAIM_ACCESS_TOKEN_SECRET=")
+	if image != "" {
+		// The docker CLI needs the real HOME for its context, and the container does not inherit it.
+		return env
+	}
+	return append(env, "HOME="+t.TempDir(), "XDG_CONFIG_HOME="+t.TempDir())
 }
 
 func strconvQuote(value string) string { data, _ := json.Marshal(value); return string(data) }

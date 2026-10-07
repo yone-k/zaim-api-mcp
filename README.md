@@ -2,7 +2,7 @@
 
 [English README](README.en.md)
 
-Zaimの家計簿データを取得・作成・更新・削除する、Go製のMCPサーバーです。MCPクライアントとはstdioで通信し、ZaimにはOAuth 1.0aで認証します。
+Zaimの家計簿データを取得・作成・更新・削除する、Go製のMCPサーバーです。MCPクライアントとはstdioで通信し、Zaim APIへのリクエストにはOAuth 1.0aの署名を付けます。
 
 ## 特徴
 
@@ -16,17 +16,6 @@ Zaimの家計簿データを取得・作成・更新・削除する、Go製のMC
 ## 要件
 
 ソースからビルドする場合はGo 1.26.2以上、Dockerで起動する場合はDockerが必要です。
-
-Zaimの認証情報は、次の4つの環境変数で設定します。
-
-```bash
-export ZAIM_CONSUMER_KEY=your_consumer_key
-export ZAIM_CONSUMER_SECRET=your_consumer_secret
-export ZAIM_ACCESS_TOKEN=your_access_token
-export ZAIM_ACCESS_TOKEN_SECRET=your_access_token_secret
-```
-
-認証情報はツール実行時に検証します。未設定でもサーバーの起動とツール一覧の取得はできます。
 
 ## インストール・起動
 
@@ -66,9 +55,83 @@ docker compose build
 docker compose run --rm -T zaim-api
 ```
 
+`auth login`で保存した認証情報をDockerで使う方法は、「[Dockerで保存した認証情報を使う](#dockerで保存した認証情報を使う)」を参照してください。
+
+## 認証
+
+Zaim APIへのリクエストには、OAuth 1.0aの署名に使う次の4つの値が必要です。
+
+| 値 | 入手方法 |
+|---|---|
+| Consumer Key・Consumer Secret | [Zaim Developers](https://dev.zaim.net/)でアプリケーションを登録して発行 |
+| Access Token・Access Token Secret | `auth login`で、ブラウザからアクセスを許可して取得 |
+
+4つの値は、`auth login`でファイルに保存するか、環境変数で渡します。サーバーは次の基準で認証情報を選びます。
+
+- 4つの環境変数がすべて設定されていれば、環境変数を使います。
+- 4つとも未設定なら、`auth login`で保存したファイルを使います。
+- 一部だけ設定されている場合は、保存したファイルと組み合わせずにエラーにします。
+
+認証情報はツールの実行時に検証するため、未設定でもサーバーの起動とツール一覧の取得はできます。
+
+### `auth login`で保存する
+
+`go install`でインストールした場合は、次のコマンドを実行します。`dist/`にビルドした場合は、`./dist/zaim-api-mcp auth login`を実行してください。
+
+```bash
+zaim-api-mcp auth login
+```
+
+1. Consumer KeyとConsumer Secretを入力します。環境変数`ZAIM_CONSUMER_KEY`と`ZAIM_CONSUMER_SECRET`が設定されていれば、入力は求めません。
+2. ブラウザでZaimの認可画面が開くので、アクセスを許可します。ブラウザが開かない場合は、表示されたURLを手動で開いてください。
+3. コマンドがAccess Tokenを取得し、4つの値をファイルに保存します。
+
+保存先は`~/.config/zaim-api-mcp/credentials.json`です。`XDG_CONFIG_HOME`を設定している場合は、`$XDG_CONFIG_HOME/zaim-api-mcp/credentials.json`に保存します。ファイルは本人だけが読み書きできる権限（0600）で作成します。
+
+認可後のコールバックは`http://localhost:8080/callback`で受け取ります。ポートを変える場合は`--port`を指定してください。5分以内に許可しないと中断します。
+
+保存した認証情報を使う場合、MCPクライアントの設定に`env`は不要です。これまで環境変数で設定していた場合は、MCPクライアントの設定から4つの`ZAIM_*`を削除してください。4つとも残っていると環境変数が使われ、一部だけ残っているとエラーになります。
+
+### 環境変数で渡す
+
+Access TokenとAccess Token Secretを別の方法で取得済みの場合は、4つの値を環境変数で渡せます。
+
+```bash
+export ZAIM_CONSUMER_KEY=your_consumer_key
+export ZAIM_CONSUMER_SECRET=your_consumer_secret
+export ZAIM_ACCESS_TOKEN=your_access_token
+export ZAIM_ACCESS_TOKEN_SECRET=your_access_token_secret
+```
+
+### Dockerで保存した認証情報を使う
+
+ホストで`auth login`を実行してから、保存先のディレクトリを読み取り専用でマウントします。コンテナ内でファイルを読めるよう、`--user`でホストと同じユーザーIDを指定してください。
+
+```bash
+docker run --rm -i \
+  --user "$(id -u):$(id -g)" \
+  -e XDG_CONFIG_HOME=/config \
+  -v "$HOME/.config/zaim-api-mcp:/config/zaim-api-mcp:ro" \
+  zaim-api-mcp
+```
+
 ## MCPクライアント設定
 
 サーバー名は従来の`zaim-api`を使います。`command`には、ビルドしたGoバイナリの絶対パスを指定してください。
+
+`auth login`で認証情報を保存した場合の設定例です。
+
+```json
+{
+  "mcpServers": {
+    "zaim-api": {
+      "command": "/absolute/path/to/zaim-api-mcp/dist/zaim-api-mcp"
+    }
+  }
+}
+```
+
+環境変数で渡す場合の設定例です。
 
 ```json
 {
@@ -166,15 +229,16 @@ docker build -t zaim-api-mcp .
 ZAIM_MCP_TEST_IMAGE=zaim-api-mcp go test ./internal/mcp -run TestStdioServer -count=1
 ```
 
-テストは実Zaim APIへ接続しません。
+テストは実Zaim APIへ接続しません。実バイナリの検証では、認証情報の環境変数を空にします。ローカルのバイナリを起動するときは、`HOME`と`XDG_CONFIG_HOME`も一時ディレクトリに向け、保存した認証情報を読まないようにしています。
 
 PR作成・更新時とmainへの更新時には、GitHub Actionsでコードの整形、vet、race検査付きテスト、ビルドを確認します。Dockerでも新旧仕様での接続と終了処理を検証します。
 
 ### ディレクトリ構成
 
 ```text
-cmd/zaim-api-mcp/       起動・終了処理
-internal/config/       環境変数と認証情報の伏字
+cmd/zaim-api-mcp/       起動・終了処理、authサブコマンドの振り分け
+internal/auth/         auth loginの認可フロー
+internal/config/       環境変数・保存ファイルからの認証情報の読込、保存、伏字
 internal/mcp/          MCPサーバーと契約・プロトコルテスト
 internal/mcp/tools/    18ツール、入出力スキーマ、応答変換
 internal/version/      サーバーバージョン
